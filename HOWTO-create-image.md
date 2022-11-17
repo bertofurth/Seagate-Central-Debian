@@ -14,10 +14,15 @@ Linux bootup process on 32 bit "armel" style platforms.
 
 
 Recompile "anna"
+
 Expand and rebuild uInitrd
+
 Boot with new uInitrd and uImage
+
 Debian installation
+
 Post Debian installation steps
+
 Creating the image
 
 
@@ -298,12 +303,6 @@ scsi init
 ext2load scsi 0:2 0x4000000 uImage
 ext2load scsi 0:2 0x4A00000 uInitrd
 
-bootm 0x4000000 0x4A00000![image](https://user-images.githubusercontent.com/53927348/202542957-c6bfaedd-1206-42e3-83a0-482dcfe4622d.png)
-
-
-
-# Should have "uInitrd.new" available.
-![image](https://user-images.githubusercontent.com/53927348/202533301-e959e345-a0f2-4174-bf80-b6880a7342c9.png)
-
+bootm 0x4000000 0x4A00000
 
 
