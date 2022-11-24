@@ -254,41 +254,44 @@ unit booting up to get to the u-boot prompt as per the following example
     Flash Manufacturer: MX
     Serial Flash: 512 kB
     Serial Flash:
-Bank # 1:  Nb pages: 2048  Page Size: 256
-  Size:    524288 bytes,  Logical address: 0x60000000
-  Area 0: 60000000 to 60FFFFFF      SPI flash
-In:    serial
-Out:   serial
-Err:   serial
-CPU works at 700 MHz (700/1/1)
-DDR2 Speed is 400 MHz
-Restoring RTC
-Hit any key to stop autoboot:  0
+    Bank # 1:  Nb pages: 2048  Page Size: 256
+      Size:    524288 bytes,  Logical address: 0x60000000
+      Area 0: 60000000 to 60FFFFFF      SPI flash
+    In:    serial
+    Out:   serial
+    Err:   serial
+    CPU works at 700 MHz (700/1/1)
+    DDR2 Speed is 400 MHz
+    Restoring RTC
+    Hit any key to stop autoboot:  2
 
 
 
-# Note the use of "lowmem". It just seems to work better.
+test
 
-# Note, substitute the name of the uInitrd on your /dev/sda1 device
-# For example, it might be called "uInitrd.new"
-#
-# The uImage being used should be installed as "uImage" on the
-# /dev/sda1 partition as this is the image the u-boot bootloader will
-# try to load when the unit is reset.
-#
-# 
-# Paste these commands in one at a time as some of them can take
-# 10-20 seconds to execute
-#
-setenv current_kernel kernel1
-setenv num_boot_tries 0
-saveenv
-setenv bootargs 'console=ttyS0,38400 mem=256M root=/dev/sda3 rw lowmem=1'
-scsi init
-ext2load scsi 0:1 0x4000000 uImage
-ext2load scsi 0:1 0x4A00000 uInitrd
+    # Note the use of "lowmem". It just seems to work better.
+    
+    # Note, substitute the name of the uInitrd on your /dev/sda1 device
+    # For example, it might be called "uInitrd.new"
+    # 
+    # The uImage being used should be installed as "uImage" on the
+    # /dev/sda1 partition as this is the image the u-boot bootloader will
+    # try to load when the unit is reset.
+    #
+    # 
+    # Paste these commands in one at a time as some of them can take
+    # 10-20 seconds to execute
+    #
+    setenv current_kernel kernel1
+    setenv num_boot_tries 0
+    saveenv
+    setenv bootargs 'console=ttyS0,38400 mem=256M root=/dev/sda3 rw lowmem=1'
+    # Might need to do "scsi init" twice in a row if there are errors
+    scsi init
+    ext2load scsi 0:1 0x4000000 uImage
+    ext2load scsi 0:1 0x4A00000 uInitrd
 
-bootm 0x4000000 0x4A00000
+    bootm 0x4000000 0x4A00000
 
 
 # After this you should see the Linux kernel booting
