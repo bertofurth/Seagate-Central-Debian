@@ -61,6 +61,9 @@ Archive : https://archive.ph/ONi4l
 This shows which pads on the circuit board correspond to which TTL serial
 lines.
 
+TODO: Put some pictures of a Seagate Central circuit board with leads
+soldered to it into a folder in the project.
+
 You will need to connect a TTL to RS232 converter to the leads coming
 from the Seagate Central in order to use a standard RSR232 serial
 connection to your terminal/computer.
