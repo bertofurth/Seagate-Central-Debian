@@ -720,7 +720,13 @@ Cirrus model:(SENTINEL) release v1.3
 
 
 ## Post Debian installation steps
-We need to install the "u-boot-tools" debian package on the Seagate Central
+You might notice at this point that even though the system is operational,
+the LED status light on top of the unit is still flashing green.
+
+In order to fix this we need to install and configure a startup script that
+will take care of this and some other Seagate Central specific issues.
+
+First we install the "u-boot-tools" Debian package on the Seagate Central 
 using the following command issued as root. 
 
     apt-get -y install u-boot-tools
@@ -767,24 +773,14 @@ the u-boot environment variables as per the following example
     . . . .
     num_boot_tries=0
     
-Next, we need to create a boot script that will reset the "num_boot_tries" variable
+Next, we need to create a few boot scripts that perform Seagate Central specific
+tasks. The most important one is that we need to reset the "num_boot_tries" variable
 back to zero on each boot. This variable is incremented by u-boot each time the 
 unit tries to boot up. If it reaches 4 then u-boot assumes that the kernel on
 a particular partition was not able to boot and so it will try to boot up the
-kernel on the backup partition. Create the boot script and associated systemd
-with the following
-
-
-    cat << EOF > /etc/systemd/system/sc-bootup.service
-    [Unit]
-    Description=Seagate Central specific bootup
-
-    [Service]
-    ExecStart=/bin/bash /usr/sbin/sc-bootup.sh
-    
-    [Install]
-    WantedBy=multi-user.target
-    EOF
+kernel on the backup partition. We also include some commands that set the LED status
+light appropriately. Create these boot script and associated systemd service
+files with the following commands issued as root.
 
     cat << EOF > /usr/sbin/sc-bootup.sh
     #!/bin/bash
@@ -795,11 +791,53 @@ with the following
     fw_setenv num_boot_tries 0 &> /dev/null
     EOF
     chmod u+x /usr/sbin/sc-bootup.sh
+    
+    cat << EOF > /usr/sbin/sc-shutdown.sh
+    #!/bin/bash
+    echo Performing Seagate Central Specific Shutdown
+    echo Setting status LED to flashing red
+    echo 5 > /proc/cns3xxx/leds
+    EOF
+    chmod u+x /usr/sbin/sc-shutdown.sh
+    
+    cat << EOF > /etc/systemd/system/sc-bootup.service
+    [Unit]
+    Description=Seagate Central specific bootup
+    After=multi-user.target
+
+    [Service]
+    ExecStart=/bin/bash /usr/sbin/sc-bootup.sh
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+    cat << EOF > /etc/systemd/system/sc-shutdown.service
+    [Unit]
+    Description=Seagate Central specific shutdown
+    After=final.target
+
+    [Service]
+    ExecStart=/bin/bash /usr/sbin/sc-shutdown.sh
+    
+    [Install]
+    WantedBy=final.target
+    EOF
+    
     systemctl start sc-bootup
     systemctl enable sc-bootup
     
+At this point the LED status light on the Seagate Central should show solid green.
+From now on when the unit boots this should also happen.
     
+Before shutting down the unit run the following command to clear the disk of
+any cached debian repository files which can consume a large amount of space.
     
+    apt-get clean
+
+Then shutdown the unit in preperation to take a snapshot of the image.
+
+
 ## Creating the Seagate Central "upgrade" image
 
 
@@ -852,12 +890,6 @@ all the typical directories seen in a Linux root (bin, var, lib, and so forth)
 
     root@Debian:~/new# ls
     bin  dev  etc  init  initrd  lib  media  mnt  proc  run  sbin  sys  tmp  usr  var
-
-
-
-
-
-
 
 
 ## Notes about "anna"
