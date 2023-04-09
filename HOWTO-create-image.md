@@ -28,23 +28,14 @@ FIXME
 ## Prerequisites
 * A working serial console connection to the Seagate Central (Hard)
 * Root access to a Debian based Linux distribution on another machine.
-* (Optional but likely needed) An USB connected external harddrive reader.
+* A USB hard drive reader.
 
-## Connect the Serial Console to the Seagate Central
+## Procedure
+### Connect the Serial Console to the Seagate Central
 Connecting the physical serial console to the Seagate Central involves,
-disassembling the unit, removing the circuit board, then soldering leads
-to the 4 circuit board pads next to the "J2" or "J4" label on bottom
-side of the Seagate Central circuit board.
-
-There are some very brief details of how to attach a serial console at
-
-http://seagate-central.blogspot.com/2014/01/blog-post.html
-
-Archive : https://archive.ph/ONi4l
-
-You will need to connect a TTL to RS232 converter to the leads coming
-from the Seagate Central in order to use a standard RSR232 serial
-connection to your terminal/computer.
+disassembling the unit, removing the hard drive, removing the circuit
+board, then soldering leads to the 4 circuit board pads next to the
+"J2" or "J4" label on bottom side of the Seagate Central circuit board.
 
 You may also need to drill some small holes through the bottom of the 
 unit's plastic case and internal metal frame so that the leads can be
@@ -52,7 +43,34 @@ fed outside the unit when you put it back together. I normally
 drill 4 small holes so that the leads can be kept seperate (see note
 below about cross talk)
 
+The following diagram is borrowed from
+
+http://seagate-central.blogspot.com/2014/01/blog-post.html
+
+Archive : https://archive.ph/ONi4l
+
+
+    TX   RX
+    []---[]
+    |     |
+    |     |  J4
+    |     |
+    []---[]
+    VCC  GND
+      
+This shows which pads on the circuit board correspond to which TTL serial
+lines.
+
+You will need to connect a TTL to RS232 converter to the leads coming
+from the Seagate Central in order to use a standard RSR232 serial
+connection to your terminal/computer.
+
 The serial connection parameters are 38400-8-N-1.
+
+You can test the console connection by powering on the circuit board without
+the hard drive connected. If the console is working then you should see
+the unit start to boot up and you should be able to enter the u-boot
+environment. 
 
 If you find that **some** of the characters being transmitted from the
 Segate Central appear as "garbage" then it may be due to crosstalk between
@@ -69,7 +87,16 @@ may have selected the wrong baud rate. We need to use baud rate setting of
 38400bps for the Seagate Central console, but most terminal emulation programs 
 use a default of 9600 or 115200.
 
-## Download and expand uInitrd
+If the circuit board is not fitted into the chassis try to only keep the 
+board powered on for short bursts of time because the CPU will not be connected
+to it's heatsink.
+
+Once you've confirmed that the serial console is working, reassemble the unit
+to the point where you install the hard drive. There's no need to put the plastic 
+cover back on for the moment because later in the procedure the hard drive will
+need to be removed again.
+
+### Download and expand uInitrd
 The Debian installation uInitrd is a special image that provides a basic
 operating system and utilities to facilitate installing a full version
 of the Debian operating system.
@@ -93,6 +120,8 @@ http://ftp.debian.org/debian/dists/stable/main/installer-armel/current/images/ki
 In order to manipulate this image make sure your Debian system has
 the "u-boot-tools" package installed so that the "mkimage" utility is
 available. 
+
+    apt-get install u-boot-tools
 
 Download and expand the uInitrd image as per the following example. Note that
 some commands need to be executed using root privileges.
@@ -549,12 +578,12 @@ minutes.
     Description: Select your time zone
     Answer: Pacific (or whatever your timezone is)
 
-    
-Note for the following section where we create the first
+Note that in the following section where we create the first
 user, the username cannot be set to "admin" as this is a reserved
 username in Debian. I've created a user called "Seagate Central"
 (Username : "sc") but you can specify a different username if you
 wish. This will be the username you log in via ssh with once the
+system is up and running. You can create other usernames once the
 system is up and running.
     
     Title: Set up users and passwords
@@ -571,7 +600,7 @@ system is up and running.
     Suggested Answer: SCdebian2022
 
 The disk partitioning section is the most complicated part of the
-installation. Make sure you know what you're doing in this part.
+installation. We need to manually configure the partitioning.
 
     Title: Partition disks
     Description: Partitioning method
@@ -584,7 +613,6 @@ Scroll down to the partitions that need to be modified.
 The Data/home partition
 
     Under "LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)"
-
     Select  "#1      4.0 TB       ext4"
 
     Use as: Ext4 journaling file system
@@ -624,7 +652,9 @@ The swap partiton
     
     Scroll down to and select "Done setting up the partition"
 
-After that the partition table should look something like this. "K" indicates that the partition will be kept and used by Debian, and "F" indicates that it will be formatted.
+After that the partition table should look something like this.
+"K" indicates that the partition will be kept and used by Debian, 
+and "F" indicates that it will be formatted.
 
     LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)  
          #1      4.0 TB    F  ext4                      /home 
@@ -641,11 +671,13 @@ After that the partition table should look something like this. "K" indicates th
 
 You could optionally set up the system so that it mounted the other partitions in
 order for them to be accessible to the Debian system but that can be done
-after the operating system is properly installed.
+after the operating system is up and running.
 
-Scroll right down to the bottom of the screen and select
+Scroll right down to the bottom of the screen and select 
 
     Finish partitioning and write changes to disk
+
+You will be prompted as follows
 
     Title: Partition disks
     Description: If you continue, the changes listed below will be written to the disks.
@@ -689,7 +721,6 @@ then de-select them. You can install whatever other software you
 like once the system is up and running. You may need to scroll
 down to deselect "Standard Software Utilities".
 
-
     Title: Continue without boot loader
     Description: No boot loader installed
     Answer: Continue
@@ -703,30 +734,21 @@ down to deselect "Standard Software Utilities".
 
 Go back to the serial console session and the unit should reboot. After a
 minute or so you should be presented with the Debian login prompt where
-you can log into the system.
+you can log into the system. Log in as root.
 
     Debian GNU/Linux 11 SC-debian ttyS0
 
     SC-debian login: root
     Password: SCdebian2022
    
-
-the Ethernet interface At the point where u-boot notice appears I would suggest removing the 
-power from the unit and reconnecting it. We have found that sometimes 
-after a major upgrade the
-
-U-Boot 2008.10-mpcore (Apr  2 2013 - 14:41:52)
-Cirrus model:(SENTINEL) release v1.3
-
-
 ## Post Debian installation steps
 You might notice at this point that even though the system is operational,
 the LED status light on top of the unit is still flashing green.
 
-In order to fix this we need to install and configure a startup script that
-will take care of this and some other Seagate Central specific issues.
+In order to fix this and some other Seagate Central specific issues we need
+to install and configure some boot scripts.
 
-First we install the "u-boot-tools" Debian package on the Seagate Central 
+First, we need to install the "u-boot-tools" Debian package on the Seagate Central 
 using the following command issued as root. 
 
     apt-get -y install u-boot-tools
@@ -752,7 +774,7 @@ The following example shows this happening.
 
 The important "fw_printenv" and "fw_setenv" utilities which manipulate the u-boot
 environment variables have now been installed. We need to create the configuration file
-for these tools by issueing the following commands on the Seagate Central as root.
+for these tools by issuing the following commands on the Seagate Central as root.
 
     cat << EOF > /etc/fw_env.config 
     # MTD device name       Device offset   Env. size       Flash sector size       Number of sectors
@@ -774,13 +796,19 @@ the u-boot environment variables as per the following example
     num_boot_tries=0
     
 Next, we need to create a few boot scripts that perform Seagate Central specific
-tasks. The most important one is that we need to reset the "num_boot_tries" variable
-back to zero on each boot. This variable is incremented by u-boot each time the 
-unit tries to boot up. If it reaches 4 then u-boot assumes that the kernel on
-a particular partition was not able to boot and so it will try to boot up the
-kernel on the backup partition. We also include some commands that set the LED status
-light appropriately. Create these boot script and associated systemd service
-files with the following commands issued as root.
+tasks. 
+
+Most notably we need to reset the "num_boot_tries" u-boot variable back to zero
+on each boot. This variable is incremented by u-boot each time the 
+unit tries to boot up. If it reaches "4" then u-boot assumes that the kernel on
+a particular partition was not able to boot and so it will switch to trying to boot
+up the kernel and operating systems on the backup set of paritions.
+
+We also include some commands that set the LED status light appropriately and
+set the network CPU affinity to CPU 1.
+
+Create these boot script and associated systemd service files with the following
+commands issued as root.
 
     cat << EOF > /usr/sbin/sc-bootup.sh
     #!/bin/bash
@@ -789,6 +817,9 @@ files with the following commands issued as root.
     echo 1 > /proc/cns3xxx/leds
     echo Resetting u-boot environment variable num_boot_tries to 0
     fw_setenv num_boot_tries 0 &> /dev/null
+    echo Set network CPU affinity to CPU 1
+    echo 2 > /proc/irq/49/smp_affinity
+    echo 2 > /proc/irq/51/smp_affinity
     EOF
     chmod u+x /usr/sbin/sc-bootup.sh
     
@@ -815,84 +846,80 @@ files with the following commands issued as root.
     cat << EOF > /etc/systemd/system/sc-shutdown.service
     [Unit]
     Description=Seagate Central specific shutdown
-    After=final.target
+    DefaultDependencies=no
+    Before=halt.target shutdown.target reboot.target
 
     [Service]
     ExecStart=/bin/bash /usr/sbin/sc-shutdown.sh
     
     [Install]
-    WantedBy=final.target
+    WantedBy=halt.target shutdown.target reboot.target
     EOF
     
     systemctl start sc-bootup
     systemctl enable sc-bootup
+    systemctl enable sc-shutdown
     
-At this point the LED status light on the Seagate Central should show solid green.
-From now on when the unit boots this should also happen.
-    
-Before shutting down the unit run the following command to clear the disk of
-any cached debian repository files which can consume a large amount of space.
+From now on when the unit has sucesfully booted up the status LED should turn
+from blinking green to solid green and when the unit is commanded to shutdown 
+or reboot the status LED should start blinking red.
+
+## Shutdown the unit 
+Before shutting down the unit run the following commands to clear the disk of
+any cached debian repository files and logs which can consume a large amount
+of space.
     
     apt-get clean
+    rm -rf /var/log/*
 
-Then shutdown the unit in preperation to take a snapshot of the image.
+Shutdown the unit in preperation to take a snapshot of the disk image.
 
-
+    shutdown -h now
+    
+    
 ## Creating the Seagate Central "upgrade" image
+Connect the hard drive to the build system.
+
+lsblk
 
 
+mkdir /tmp/debian-root
+mount /dev/sda3 /tmp/debian-root
 
+mount /
+Make sure your build system has squashfs-tools package installed
 
-
-## Expand uInitrd
-uInitrd is a u-boot style "ram disk" that may be loaded just after the kernel is 
-activated in order to perform basic system initialization functions. In normal
-operation a Seagate Central does not use uInitrd but the Debian installation
-process makes use of this feature.
-
-
-
-
-First download an existing Debian installation uInitrd from a similar "armel"
-style platform to the build host.
-
-The uInitrd image we've used in building the Debian installation here is based on the
-"lacie" platform which is similar (but not the same as) the Seagate Central
-in terms of its architecture. This was the latest at the time of writing
-(Nov 2022).
-
-http://ftp.debian.org/debian/dists/stable/main/installer-armel/20210731+deb11u5/images/kirkwood/network-console/lacie/uInitrd
-
-It may be that there are later images available. Check the date on the uImage 
-you're downloading. If it's later than the writing of this document (Nov 2022)
-then it may be that it already contains the updated "anna" tool. 
-
-Expand the downloaded uImage on the build host as follows. You must execute
-these commands as the root user.
-
-    # List properties of uInitrd
-    mkimage -l ./uInitrd
+    apt get squashfs-tools
     
-    # Remove 64 byte u-boot header to leave gzipped ramdisk
-    dd if=./uInitrd of=./initrd.gz skip=1 bs=64
-
-    # Expand gzipped ramdisk
-    gunzip initrd.gz
     
-    # Expand filesystem image into a new directory
-    mkdir new
-    cd new
-    cpio -i -F ../initrd
+mksquashfs /tmp/sda3 /tmp/rfs.squashfs -all-root -noappend -Xcompression-level 1
 
-At this point you should be sitting in the expanded initrd filesystem. Run
-the "ls" command as per the following example to check. You should see
-all the typical directories seen in a Linux root (bin, var, lib, and so forth)
+    
+    
+    
+Create the config.ser file
 
-    root@Debian:~/new# ls
-    bin  dev  etc  init  initrd  lib  media  mnt  proc  run  sbin  sys  tmp  usr  var
+new_version=$(date +%Y.%m%d.%H%M%S-S)
+new_release_date=$(date +%d-%m-%Y)
+
+NAS-D:/Update/local# cat config.ser
+version=2022.0609.1221-S
+device=cirrus_v1
+from=all
+release_date=09-06-2022
+kernel=d3b7e4b0b0ea4ba527083fc4bc673c0a
+rfs=c9a5498ff915ca1c56fc0ec2f6a792dd     <---- md5sum rfs.squashfs
+uboot=a7d30b1fa163c12c9fe0abf030746629
 
 
-## Notes about "anna"
+
+## What next?
+
+TODO: 
+
+## Technical Notes
+
+### Notes about "anna"
 "anna" is the very simple Debian package installation tool used during installation
 of the Debian operating system.
 
