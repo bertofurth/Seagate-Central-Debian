@@ -74,11 +74,19 @@ The Debian installation uInitrd is a special image that provides a basic
 operating system and utilities to facilitate installing a full version
 of the Debian operating system.
 
+This section is based on instructions derived from the following URLs
+
+* "How to view, modify and create initrd"
+https://www.thegeekstuff.com/2009/07/how-to-view-modify-and-recreate-initrd-img/
+
+* Extracting content from the file uInitrd
+http://h-wrt.com/en/mini-how-to/uInitrd
+
 The Seagate Central shares the same CPU architecture as the LaCie family
 of NAS products which is supported on Debian. For this reason we make
-use of the "lacie" uInitrd image.
+use of the "lacie" Debian uInitrd installation image.
 
-As of writing the latest version of the uInitrd image is available at
+As of writing the latest version of this uInitrd image is available at
 
 http://ftp.debian.org/debian/dists/stable/main/installer-armel/current/images/kirkwood/network-console/lacie/uInitrd
 
@@ -471,28 +479,28 @@ Scroll to the step that failed and try it again.
 Here are some brief notes describing notable parts of the installation 
 process and some suggested answers.
 
-Title: Low memory Mode
-Description: Entering low memory mode
-Answer: Continue
+    Title: Low memory Mode
+    Description: Entering low memory mode
+    Answer: Continue
 
-Title: Configure the network
-Description: Please enter the hostname for this system.
-Suggested Answer: SC-debian   (or whatever you like)
+    Title: Configure the network
+    Description: Please enter the hostname for this system.
+    Suggested Answer: SC-debian   (or whatever you like)
 
-Title: Configure the network
-Descripton: Domain Name
-Suggested Answer: lan
+    Title: Configure the network
+    Descripton: Domain Name
+    Suggested Answer: lan
 
-Title: Continue installation remotely using SSH
-Description: You need to set a password for remote access to the Debian installer.
-Suggested Answer: SCdebian2022
+    Title: Continue installation remotely using SSH
+    Description: You need to set a password for remote access to the Debian installer.
+    Suggested Answer: SCdebian2022
 
-Title: Continue installation remotely using SSH
-Description: Please enter the same remote installation password again
-Suggested Answer: SCdebian2022
+    Title: Continue installation remotely using SSH
+    Description: Please enter the same remote installation password again
+    Suggested Answer: SCdebian2022
 
-Title: Continue installation remotely using SSH
-Description: To continue the installation, please use an SSH client
+    Title: Continue installation remotely using SSH
+    Description: To continue the installation, please use an SSH client
 
 At this point you can elect to open a new window and ssh into the unit using 
 the indicated IP address, or you can select "Continue" to proceed with 
@@ -504,227 +512,294 @@ CTRL-A followed by the "4" key to select window "4" which is the log screen.
 If you wish to ssh into the unit then use username "installer" with password 
 "SCdebian2022" (as configured above)
 
-Title: Choose a mirror of the Debian archive
-Description: Debian archive mirror country
-Suggested Answer: United States (or pick the country closest to you)
+    Title: Choose a mirror of the Debian archive
+    Description: Debian archive mirror country
+    Suggested Answer: United States (or pick the country closest to you)
 
-Title: Choose a mirror of the Debian archive
-Description: Debian archive mirror
-Suggested Answer: deb.debian.org
+    Title: Choose a mirror of the Debian archive
+    Description: Debian archive mirror
+    Suggested Answer: deb.debian.org
 
-Title: Choose a mirror of the Debian archive
-Description: HTTP proxy information
-Suggested Answer: <Leave blank>
+    Title: Choose a mirror of the Debian archive
+    Description: HTTP proxy information
+    Suggested Answer: <Leave blank>
 
-Title: Download installer components
-Suggested Answer: Yes
+    Title: Download installer components
+    Suggested Answer: Yes
 
-The installer program and parameters will be downloaded. This may take some time.
+The installer program and parameters will be downloaded. This may take a few
+minutes.
 
-Title: Select your location
-Description: Continent or region
-Suggested Answer: North America (or closest region)
+    Title: Select your location
+    Description: Continent or region
+    Suggested Answer: North America (or closest region)
 
-Title: Select your location
-Description: Country, territory or area
-Suggested Answer: United States (or your country)
+    Title: Select your location
+    Description: Country, territory or area
+    Suggested Answer: United States (or your country)
 
-Title: Set up users and passwords
-Description: Root password
-Suggested Answer: SCdebian2022
+    Title: Set up users and passwords
+    Description: Root password
+    Suggested Answer: SCdebian2022  (or whatever you like)
 
-Description: Re-enter password to verify
-Suggested Answer: SCdebian2022
+    Description: Re-enter password to verify
+    Suggested Answer: SCdebian2022
 
-Title: Configure the clock
-Description: Select your time zone
-Answer: Pacific (or whatever your timezone is)
+    Title: Configure the clock
+    Description: Select your time zone
+    Answer: Pacific (or whatever your timezone is)
 
     
 Note for the following section where we create the first
-user, the username cannot be set to "admin" as this is a reserved username
-in Debian. I've created a user called "Seagate Central" (Username : "sc")
-but you can specify a different username if you wish. This will be the
-username you log in via ssh with once the system is up and running.
+user, the username cannot be set to "admin" as this is a reserved
+username in Debian. I've created a user called "Seagate Central"
+(Username : "sc") but you can specify a different username if you
+wish. This will be the username you log in via ssh with once the
+system is up and running.
     
-Title: Set up users and passwords
+    Title: Set up users and passwords
+    Description: Full name for the new user
+    Answer: Seagate Central
 
-Description: Full name for the new user
-Answer: Seagate Central
+    Description: Username for your account
+    Answer: sc
 
-Description: Username for your account
-Answer: sc
+    Description: Choose a password for the new user
+    Answer: SCdebian2022
 
-Description: Choose a password for the new user
-Answer: SCdebian2022
+    Description: Re-enter password to verify
+    Suggested Answer: SCdebian2022
 
-Description: Re-enter password to verify
-Suggested Answer: SCdebian2022
+The disk partitioning section is the most complicated part of the
+installation. Make sure you know what you're doing in this part.
 
+    Title: Partition disks
+    Description: Partitioning method
+    Answer: Manual (Bottom option)
 
-
-
-
-Title: Partition disks
-Description: Partitioning method
-Answer: Manual (Bottom option)
-
-
-Title: Partition disks
+    Title: Partition disks
 
 Scroll down to the partitions that need to be modified.
 
-The instructions assume that the Debian operating system will be installed on the first set of partitions. That is, partition #1 for the uImage kernel and partition #3 as root for the operating system.
+The Data/home partition
 
-If you wish to install Debian on the second set of partitions then use partition #2 for the kernel and partition #4 for root. All other partitions stay the same.
+    Under "LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)"
 
+    Select  "#1      4.0 TB       ext4"
 
-Under
- LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)
+    Use as: Ext4 journaling file system
+    Format: yes, format it
+    Mount point: /home
 
-Select  "#1      4.0 TB       ext4"
+    Scroll down to and select "Done setting up the partition"
 
-Use as: Ext4 journaling file system
-Format: yes, format it
-Mount point: /home
+The boot partition
 
-Then select "Done setting up the partition"
+    Under "SCSI1 (0,0,0) (sda)"
+    Select Partition #1 "Kernel_1"
 
+    Use as: Ext2 file system
+    Format: no, keep existing data
+    Mount point: /boot
 
-Under "SCSI1 (0,0,0) (sda)"
+    Scroll down to and select "Done setting up the partition"
 
-Select Partition #1 "Kernel_1"
+The root file system partition    
 
-Use as: Ext2 file system
-Mount point: /boot
-N.B. Do NOT format this partition. It contains the Linux kernel.
+    Under "SCSI1 (0,0,0) (sda)"
+    Select Partition #3 "Root_File_System_1"
 
-Then select "Done setting up the partition"
+    Use as: "Ext4 journaling file system"
+    Format the partition: "yes, format it"
+    Mount point: "/ - the root file system"
 
+    Scroll down to and select "Done setting up the partition"
 
-Select Partition #3 "Root_File_System_1"
-Use as: "Ext4 journaling file system"
-Format the partition: "yes, format it"
-Mount point: "/ - the root file system"
+The swap partiton
 
+    Under "SCSI1 (0,0,0) (sda)"
+    Select Partition #6 "Swap"
 
-
-Partition #6 "Swap" should already be marked with a "F" indicating that it will be used and will be formatted.
-
+    Use as: "swap area"
+    
+    Scroll down to and select "Done setting up the partition"
 
 After that the partition table should look something like this. "K" indicates that the partition will be kept and used by Debian, and "F" indicates that it will be formatted.
 
-LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)  
-     #1      4.0 TB    K  ext4                      /home 
-SCSI1 (0,0,0) (sda) - 4.0 TB ATA ST4000DM000-1F21         
-             1.0 MB       FREE SPACE                     
-     #1    104.9 MB    K  ext2        Kernel_1      /boot  
-     #2    104.9 MB       ext2        Kernel_2              
-     #3      3.2 GB    F  ext4        Root_File_Sy  /      
-     #4      1.1 GB       ext4        Root_File_Sy         
-     #5      1.1 GB       ext4        Config               
-     #6      1.1 GB    F  swap        Swap          swap     
-     #7      1.1 GB       ext4        Update                
-     #8      4.0 TB    K  lvm         Data
+    LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)  
+         #1      4.0 TB    F  ext4                      /home 
+    SCSI1 (0,0,0) (sda) - 4.0 TB ATA ST4000DM000-1F21         
+                 1.0 MB       FREE SPACE                     
+         #1    104.9 MB    K  ext2        Kernel_1      /boot  
+         #2    104.9 MB       ext2        Kernel_2              
+         #3      3.2 GB    F  ext4        Root_File_Sy  /      
+         #4      1.1 GB       ext4        Root_File_Sy         
+         #5      1.1 GB       ext4        Config               
+         #6      1.1 GB    F  swap        Swap          swap     
+         #7      1.1 GB       ext4        Update                
+         #8      4.0 TB    K  lvm         Data
 
-
-
-You could optionally mount the other partitions but that can also be done after the operating system is properly installed.
-
+You could optionally set up the system so that it mounted the other partitions in
+order for them to be accessible to the Debian system but that can be done
+after the operating system is properly installed.
 
 Scroll right down to the bottom of the screen and select
 
-Finish partitioning and write changes to disk
+    Finish partitioning and write changes to disk
+
+    Title: Partition disks
+    Description: If you continue, the changes listed below will be written to the disks.
+    Answer: Yes
+
+The installer will now write the changes to the disk then move on to
+downloading and installing the base system which will take in the order
+of 20 to 30 minutes.
+
+After the "Installing the base system" progress is at about 92%, the following 
+message will appear complaining about the kernel. This message appears because
+the Seagate Central kernel is a custom kernel that is not available on the
+Debian servers. Make sure to select "Yes" to continue the installation.
+
+    Title : Install the base system
+    Description: 
+    No installable kernel was found in the defined APT sources.                                                                                                
+
+    You may try to continue without a kernel, and manually install 
+    your own kernel later. This is only recommended for experts,
+    otherwise you will likely end up with a machine that doesn't boot.                                                                                                                       
+    Continue without installing a kernel?
+
+    Answer: Yes (Make sure to answer Yes!!)
+
+You will be asked to partiticipate in a package usage survey. I'd 
+suggest answering no.
+
+    Select and install software
+
+    Title: Configuring popularity-contest
+    Description: Participate in the package usage survey?
+    Answer: "No"
+
+After about 10 more minutes you will be presented with a screen 
+titled "Software selection". You'll be presented with a list packages
+and sofware to install. In order to minimize the size of the 
+installed software, don't select anything but the "SSH server". If 
+"Standard System Utilites" or any other options are selected 
+then de-select them. You can install whatever other software you 
+like once the system is up and running. You may need to scroll
+down to deselect "Standard Software Utilities".
 
 
+    Title: Continue without boot loader
+    Description: No boot loader installed
+    Answer: Continue
+        
+    Title: Finish the installation
+    Description: Installation complete
+    
+    Installation is complete, so it is time to boot into your new system.
+    
+    Answer: Continue
 
-Title: Partition disks
-Description: Write the changes to disks?
-Answer: Yes
+Go back to the serial console session and the unit should reboot. After a
+minute or so you should be presented with the Debian login prompt where
+you can log into the system.
 
+    Debian GNU/Linux 11 SC-debian ttyS0
 
+    SC-debian login: root
+    Password: SCdebian2022
+   
 
-
-The installer will move on to downloading and installing the base system.
-
-
-
-
-
-
-
-After the "Installing the base system" progress is at about 92% the following message will appear
-
-
-Title : Install the base system
-Description: 
-No installable kernel was found in the defined APT sources.                                                                                                
-
-You may try to continue without a kernel, and manually install your own kernel later. This is only recommended for experts, otherwise you will likely end up with a machine that doesn't boot.                                                                                                                       
-
-Continue without installing a kernel?
-
-Answer: Yes (Make sure to answer Yes!!)
-
-
-
-Select and install software
-
-Title: Configuring popularity-contest
-Description: Participate in the package usage survey?
-Answer: "No"
-
-
-Title: Software selection
-
-At the moment, only the core of the system is installed . . .
-
-You'll be presented with a list of things to install.
-
-Don't select anything but the default which should be
-
-* SSH server
-* standard system utilities
-
-You can install whatever other software you like once the system is up and running.
-
-
-
-Title: Configuring discover
-Description: Applying updates on a frequent basis is . . .
-Answer: Continue
-
-Title: Configuring discover
-Answer: No automatic updates
-
-
-
-
-
-
-Title: Continue without boot loader
-Description: No boot loader installed
-Answer: Continue
-
-
-Title: Finish the installation
-Description: Installation complete
-
-Select "Continue"
-
-
-Go back to the serial console session and the unit should reboot.
-
-At the point where u-boot notice appears I would suggest removing the power from the unit and reconnecting it. We have found that sometimes after a major upgrade the ethernet interface can fail to operate properly unless the unit is power cycled.
+the Ethernet interface At the point where u-boot notice appears I would suggest removing the 
+power from the unit and reconnecting it. We have found that sometimes 
+after a major upgrade the
 
 U-Boot 2008.10-mpcore (Apr  2 2013 - 14:41:52)
 Cirrus model:(SENTINEL) release v1.3
 
 
 ## Post Debian installation steps
+We need to install the "u-boot-tools" debian package on the Seagate Central
+using the following command issued as root. 
 
-## Set up Seagate Central specific boot scripts
+    apt-get -y install u-boot-tools
+    
+The following example shows this happening.
+        
+    root@SC-debian:/# apt-get -y install u-boot-tools
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    The following NEW packages will be installed:
+      u-boot-tools
+    0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+    Need to get 156 kB of archives.
+    After this operation, 584 kB of additional disk space will be used.
+    Get:1 http://deb.debian.org/debian bullseye/main armel u-boot-tools armel 2021.01+dfsg-5 [156 kB]
+    Fetched 156 kB in 0s (869 kB/s)
+    Selecting previously unselected package u-boot-tools.
+    (Reading database ... 9734 files and directories currently installed.)
+    Preparing to unpack .../u-boot-tools_2021.01+dfsg-5_armel.deb ...
+    Unpacking u-boot-tools (2021.01+dfsg-5) ...
+    Setting up u-boot-tools (2021.01+dfsg-5) ...
 
+The important "fw_printenv" and "fw_setenv" utilities which manipulate the u-boot
+environment variables have now been installed. We need to create the configuration file
+for these tools by issueing the following commands on the Seagate Central as root.
+
+    cat << EOF > /etc/fw_env.config 
+    # MTD device name       Device offset   Env. size       Flash sector size       Number of sectors
+    /dev/mtd1               0x0000          0x8000          0x1000
+    /dev/mtd2               0x0000          0x8000          0x1000
+    EOF
+
+After creating this fw_env.config file the "fw_printenv" command should display
+the u-boot environment variables as per the following example
+
+    root@SC-debian:~# fw_printenv
+    baudrate=38400
+    boardtest_state_memory=none
+    bootargs=console=ttyS0,38400 mem=256M root=/dev/sda3 rw
+    bootcmd=scsi init;ext2load scsi 0:1 0x4000000 uImage;bootm
+    bootdelay=5
+    . . . .
+    . . . .
+    num_boot_tries=0
+    
+Next, we need to create a boot script that will reset the "num_boot_tries" variable
+back to zero on each boot. This variable is incremented by u-boot each time the 
+unit tries to boot up. If it reaches 4 then u-boot assumes that the kernel on
+a particular partition was not able to boot and so it will try to boot up the
+kernel on the backup partition. Create the boot script and associated systemd
+with the following
+
+
+    cat << EOF > /etc/systemd/system/sc-bootup.service
+    [Unit]
+    Description=Seagate Central specific bootup
+
+    [Service]
+    ExecStart=/bin/bash /usr/sbin/sc-bootup.sh
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+    cat << EOF > /usr/sbin/sc-bootup.sh
+    #!/bin/bash
+    echo Performing Seagate Central Specific Startup
+    echo Setting status LED to solid green
+    echo 1 > /proc/cns3xxx/leds
+    echo Resetting u-boot environment variable num_boot_tries to 0
+    fw_setenv num_boot_tries 0 &> /dev/null
+    EOF
+    chmod u+x /usr/sbin/sc-bootup.sh
+    systemctl start sc-bootup
+    systemctl enable sc-bootup
+    
+    
+    
 ## Creating the Seagate Central "upgrade" image
 
 
@@ -737,16 +812,8 @@ activated in order to perform basic system initialization functions. In normal
 operation a Seagate Central does not use uInitrd but the Debian installation
 process makes use of this feature.
 
-BERTO: TODO: MIGHT BE POSSIBLE TO DO THIS WITHOUT SERIAL CONSOLE BY PUTTING uInitrd
-into a disk image and loading it on a root_File_system.
 
-This section is based on instructions derived from the following URLs
 
-* "How to view, modify and create initrd"
-https://www.thegeekstuff.com/2009/07/how-to-view-modify-and-recreate-initrd-img/
-
-* Extracting content from the file uInitrd
-http://h-wrt.com/en/mini-how-to/uInitrd
 
 First download an existing Debian installation uInitrd from a similar "armel"
 style platform to the build host.
@@ -823,4 +890,13 @@ https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=998668
 
 Hopefully in the future as the installer image is updated the "anna" tool will
 also be updated.
+
+
+## Troubleshooting
+
+In some rare cases after a major upgrade the ethernet interface can fail
+to operate properly unless the unit is power cycled. If network connectivity
+is lost after the upgrade then shutdown with the "shutdown -h now" command
+via the serial console and then after a minute physically power cycle the 
+unit.
 
