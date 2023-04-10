@@ -1,8 +1,8 @@
 # HOWTO Create Minimal Debian Image
 This is a very brief overview of how the Debian installation image was
-created. There is no need for anyone to go through this procedure because the
-Seagate Central Debian installation images are made available in
-the downloads section of this project. This procedure is only documented
+created. There is no need for anyone to perform this procedure because 
+prebuilt Seagate Central Debian installation images are made available in
+the releases section of this project. This procedure is documented
 here for completeness sake in case someone wants to perform the
 process themselves.
 
@@ -618,17 +618,6 @@ Scroll down to the partitions that need to be modified. Note
 that we do not setup the large data partition. This has to
 be done once Debian has booted up on the unit.
 
-The boot partition
-
-    Under "SCSI1 (0,0,0) (sda)"
-    Select Partition #1 "Kernel_1"
-
-    Use as: Ext2 file system
-    Format: no, keep existing data
-    Mount point: /boot
-
-    Scroll down to and select "Done setting up the partition"
-
 The root file system partition    
 
     Under "SCSI1 (0,0,0) (sda)"
@@ -653,22 +642,20 @@ After that the partition table should look something like this.
 "K" indicates that the partition will be kept, and "F" or "f"
 indicates that it will be formatted.
 
+##FIX THIS
+
     LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)  
          #1      4.0 TB    F  ext4                      /home 
     SCSI1 (0,0,0) (sda) - 4.0 TB ATA ST4000DM000-1F21         
                  1.0 MB       FREE SPACE                     
-         #1    104.9 MB    K  ext2        Kernel_1      /boot  
+         #1    104.9 MB       ext2        Kernel_1      /boot  
          #2    104.9 MB       ext2        Kernel_2              
          #3      3.2 GB    F  ext4        Root_File_Sy  /      
          #4      1.1 GB       ext4        Root_File_Sy         
          #5      1.1 GB       ext4        Config               
-         #6      1.1 GB    F  swap        Swap          swap     
+         #6      1.1 GB    f  swap        Swap          swap     
          #7      1.1 GB       ext4        Update                
          #8      4.0 TB    K  lvm         Data
-
-You could optionally set up the system so that it mounted the other partitions in
-order for them to be accessible to the Debian system but that can be done
-after the operating system is up and running.
 
 Scroll right down to the bottom of the screen and select 
 
@@ -739,11 +726,8 @@ you can log into the system. Log in as root.
     Password: SCdebian2022
    
 ## Post Debian installation steps
-You might notice at this point that even though the system is operational,
-the LED status light on top of the unit is still flashing green.
-
-In order to fix this and some other Seagate Central specific issues we need
-to install and configure some boot scripts.
+A few Seagate Central specific modifications need to be made to the
+Debian system.
 
 First, we need to install the "u-boot-tools" Debian package on the Seagate Central 
 using the following command issued as root on the Seagate Central.
@@ -842,6 +826,23 @@ From now on when the unit has sucesfully booted up the status LED should turn
 from blinking green to solid green and when the unit is commanded to shutdown 
 or reboot the status LED should start blinking red.
 
+The next thing to do is to modify the /etc/fstab file which governs what
+filesystems are mounted on boot. The Debian installer makes use of UUIDs
+to specify partitions but this is not helpful in our case. We need to specify
+partiton names instead.
+
+    cat << EOF > /etc/fstab
+    # /etc/fstab: static file system information.
+    #
+    # <file system> <mount point>   <type>  <options>             <dump>  <pass>
+    rootfs          /               auto    errors=remount-ro      0      1
+    /dev/sda6       none            swap    sw                     0      0
+    EOF
+    
+Once the unit has booted properly then users can do further customization
+of the fstab file to include the large Data partition and possibly the
+boot and other partitions.
+
 ## Shutdown and Power down the Seagate Central 
 Before shutting down the unit run the following commands to clear the disk of
 any cached debian repository files and logs which can consume a large amount
@@ -920,7 +921,29 @@ process to validate the contents of the upgrade image.
     echo "rfs=$(md5sum /tmp/rfs.squashfs | cut -c1-32)" >> /tmp/config.ser
     echo "uboot=a7d30b1fa163c12c9fe0abf030746629" >> /tmp/config.ser
     
+Finally, create the image with the following commands.
 
+    tar -C /tmp -czvf Debian-for-SC.img rfs.squashfs uImage config.ser
+
+
+
+
+After you perform the upgrade
+
+
+    Rebooting in progress
+
+    The device is rebooting after completing system updates and changes. Wait until the page refreshes and the Seagate Central application appears.
+
+The page will never refresh
+
+
+
+When the system boots up we need to fix a few things
+
+
+
+/sbin/mkswap /dev/sda6
 
 
 
