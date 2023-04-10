@@ -21,10 +21,6 @@ by physically opening up the unit, soldering wires onto the circuit board,
 and connecting to the unit's serial console. Note that unless this soldering 
 process is done carefully, the unit may be damaged and become inoperative!
 
-## TLDNR
-
-FIXME
-
 ## Prerequisites
 * A working serial console connection to the Seagate Central (Hard)
 * Root access to a Debian based Linux distribution on another machine.
@@ -64,9 +60,9 @@ lines.
 TODO: Put some pictures of a Seagate Central circuit board with leads
 soldered to it into a folder in the project.
 
-You will need to connect a TTL to RS232 converter to the leads coming
-from the Seagate Central in order to use a standard RSR232 serial
-connection to your terminal/computer.
+You will most likely need to connect a TTL to RS232 converter to the 
+leads coming from the Seagate Central in order to use a standard RSR232 
+serial connection to your terminal/computer.
 
 The serial connection parameters are 38400-8-N-1.
 
@@ -179,7 +175,7 @@ some commands need to be executed using root privileges.
     drwxr-xr-x  6 root root 4096 Apr  9 01:18 usr
     drwxr-xr-x  6 root root 4096 Apr  9 01:18 var
 
-## Check the version of "anna" included in the uInitrd 
+### Check the version of "anna" included in uInitrd 
 "anna" is the very simple Debian package installation tool used during 
 installation of the Debian operating system
 
@@ -211,7 +207,7 @@ of the Debian installation uInitrd image with an appropriate version of "anna"
 so you will probably have to proceed with the steps below that are labeled 
 with "(old anna)".
 
-## Download "anna" source and recompile "anna" (old anna)
+### Download "anna" source and recompile "anna" (old anna)
 If the uInitrd contains the old version of "anna" then a new version will
 need to be cross compiled.
 
@@ -268,7 +264,7 @@ The source tree will also contain the file "debian/anna.templates" that will be
 needed to be added to the uInitrd image that will be created in the next part
 of the process.
 
-## Modify and rebuild uInitrd (old anna)
+### Modify and rebuild uInitrd (old anna)
 At this stage we need to copy the newly built "anna" tool into the expanded
 uInitrd file system. **These commands must be executed as the root user** from the
 root folder of the expanded uInitrd. Note that these instructions assume that
@@ -294,7 +290,7 @@ the cross compiled "anna" tool is located at ~user/anna
 You will now have a "uInitrd.new" file that contains the updated "anna"
 utility. It should be roughly 10MB in size.
 
-## Obtain an updated 4K page Linux kernel for Seagate Central
+### Obtain an updated 4K page Linux kernel for Seagate Central
 Refer to the "Releases" section of the Seagate Central Slot In v5.x Kernel project
 to download the latest version of the 4K page size Linux kernel for Seagate Central
 
@@ -311,7 +307,7 @@ however the 4K page size kernel is significantly more memory efficient. Since th
 Debian operating system is more memory hungry than the native Seagate Central firmware
 it is necessary to make this compromise between peformance and memory efficiency.
 
-# Upload kernel and uInitrd ramdisk to the boot partition on Seagate Central
+### Upload kernel and uInitrd ramdisk to the boot partition on the Seagate Central
 The goal of this section is to copy the new 4K kernel and the new uInitrd to the
 appropriate boot partition on the Seagate Central.
 
@@ -345,7 +341,7 @@ The following shows an example of how the files might be transferred.
     -rw-r--r-- 1 root root  4316328 Apr  9 18:00 uImage
     -rw-r--r-- 1 root root 10625068 Apr  9 18:01 uInitrd.new
 
-# Prepare to boot the installer via the serial console
+### Prepare to boot the installer via the serial console
 Reboot the unit with the serial console in place. As the unit boots up, information
 similar to the following will appear on the console
 
@@ -381,7 +377,6 @@ in the Seagate Central says "Whitney #".
 At ths point we need to configure u-boot to make sure to attempt to boot the
 primary partition by using the following commands.
 
-
     setenv num_boot_tries 0
     setenv current_kernel kernel1
     saveenv
@@ -413,7 +408,7 @@ Here is an example of these commands being executed.
     Serial Flash Sector 55 Erase OK!
     0x00008000
 
-# Boot the Debian installation uInitrd from the serial console
+### Boot the Debian installation uInitrd from the serial console
 To load specific uImage and uInitrd from uboot u-boot from the Seagate Central console
 boot the unit and make sure to hit a key within the first few seconds of the
 unit booting up to get to the u-boot prompt as per the following example
@@ -481,9 +476,9 @@ you that "Low memory mode" has been engaged. This is expected and necessary
 on the Seagate Central as this unit only has limited memory resources. Click
 on "continue" to proceed to the Debian installation process.
 
-## Debian installation
-The Debian installation process should be fairly straight forward to anyone
-who has installed Linux before.
+### Debian installation
+The Debian installation process involves navigating a number of text based
+menus.
 
 In this section we are not going to detail every step. In general with the Debian
 installation you should just proceed according to the menus that appear. Usually
@@ -494,7 +489,7 @@ ssh into the unit after the network has been configured.
 
 GNU screen is running the entire time so you can scroll between windows
 to view system status, logs and a command line by using standard GNU screen
-keys (ctrl-a space or ctrl-a backspace to move forward/backwards)
+keys (CTRL-A space or CTRL-A backspace to move forward/backwards)
 
 If at any stage you see any error messages such as
 
@@ -506,7 +501,7 @@ then just click on "Continue".
 If any stage of the installation fails with a message saying 
 
      Title: Installation step failed
-     Description: An installation step failed. You can try to run the failing item again from the menu, or skip it and choose something else. The failing step is: XXXXXXX
+     Description: An installation step failed. You can try to run the failing item again from the menu, or skip it and choose something else. 
 
 then just select "Continue". This should take you back to the Debian 
 installer main menu. Scroll to the step that failed and try it again.
@@ -586,11 +581,11 @@ minutes.
 
 Note that in the following section where we create the first
 user, the username cannot be set to "admin" as this is a reserved
-username in Debian. I've created a user called "Seagate Central"
+username in Debian. In this procedure we create a user called "Seagate Central"
 (Username : "sc") but you can specify a different username if you
 wish. This will be the username you log in via ssh with once the
-system is up and running. You can create other usernames once the
-system is up and running.
+system is up and running. Naturally, you can create other usernames
+once the system is up and running.
     
     Title: Set up users and passwords
     Description: Full name for the new user
@@ -615,7 +610,7 @@ installation. We need to manually configure the partitioning.
     Title: Partition disks
 
 Scroll down to the partitions that need to be modified. Note
-that we do not setup the large data partition. This has to
+that we do not setup the large "Data" partition. This has to
 be done once Debian has booted up on the unit.
 
 The root file system partition    
@@ -638,25 +633,8 @@ The swap partiton
     
     Scroll down to and select "Done setting up the partition"
 
-After that the partition table should look something like this.
-"K" indicates that the partition will be kept, and "F" or "f"
-indicates that it will be formatted.
 
-##FIX THIS
-
-    LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)  
-         #1      4.0 TB    F  ext4                      /home 
-    SCSI1 (0,0,0) (sda) - 4.0 TB ATA ST4000DM000-1F21         
-                 1.0 MB       FREE SPACE                     
-         #1    104.9 MB       ext2        Kernel_1      /boot  
-         #2    104.9 MB       ext2        Kernel_2              
-         #3      3.2 GB    F  ext4        Root_File_Sy  /      
-         #4      1.1 GB       ext4        Root_File_Sy         
-         #5      1.1 GB       ext4        Config               
-         #6      1.1 GB    f  swap        Swap          swap     
-         #7      1.1 GB       ext4        Update                
-         #8      4.0 TB    K  lvm         Data
-
+After configuring these two partitions 
 Scroll right down to the bottom of the screen and select 
 
     Finish partitioning and write changes to disk
@@ -669,7 +647,7 @@ You will be prompted as follows
 
 The installer will now write the changes to the disk then move on to
 downloading and installing the base system which will take in the order
-of 20 to 30 minutes.
+of 20 minutes.
 
 After the "Installing the base system" progress is at about 92%, the following 
 message will appear complaining about the kernel. This message appears because
@@ -718,13 +696,14 @@ down to deselect "Standard Software Utilities".
 
 Go back to the serial console session and the unit should reboot. After a
 minute or so you should be presented with the Debian login prompt where
-you can log into the system. Log in as root.
+you can log into the system. Log in as root using the credentials 
+supplied during installation.
 
     Debian GNU/Linux 11 SC-debian ttyS0
 
     SC-debian login: root
     Password: SCdebian2022
-   
+      
 ## Post Debian installation steps
 A few Seagate Central specific modifications need to be made to the
 Debian system.
@@ -827,9 +806,9 @@ from blinking green to solid green and when the unit is commanded to shutdown
 or reboot the status LED should start blinking red.
 
 The next thing to do is to modify the /etc/fstab file which governs what
-filesystems are mounted on boot. The Debian installer makes use of UUIDs
-to specify partitions but this is not helpful in our case. We need to specify
-partiton names instead.
+filesystems are mounted on boot. In the original fstab file, the Debian
+installer makes use of UUIDs to specify partitions but this is not helpful
+in our case. We need to specify partiton names instead.
 
     cat << EOF > /etc/fstab
     # /etc/fstab: static file system information.
@@ -841,7 +820,7 @@ partiton names instead.
     
 Once the unit has booted properly then users can do further customization
 of the fstab file to include the large Data partition and possibly the
-boot and other partitions.
+"boot" and other partitions.
 
 ## Shutdown and Power down the Seagate Central 
 Before shutting down the unit run the following commands to clear the disk of
@@ -925,31 +904,9 @@ Finally, create the image with the following commands.
 
     tar -C /tmp -czvf Debian-for-SC.img rfs.squashfs uImage config.ser
 
-
-
-
-After you perform the upgrade
-
-
-    Rebooting in progress
-
-    The device is rebooting after completing system updates and changes. Wait until the page refreshes and the Seagate Central application appears.
-
-The page will never refresh
-
-
-
-When the system boots up we need to fix a few things
-
-
-
-/sbin/mkswap /dev/sda6
-
-
-
-## What next?
-
-TODO: 
+The resultant "Debian-for-SC.img" file can now be used to upgrade the
+Seagate Central as per the normal web based management tool procedure
+followed up by the steps in the main README.md file in this project.
 
 ## Technical Notes
 
