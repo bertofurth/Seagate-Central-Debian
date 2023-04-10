@@ -746,31 +746,12 @@ In order to fix this and some other Seagate Central specific issues we need
 to install and configure some boot scripts.
 
 First, we need to install the "u-boot-tools" Debian package on the Seagate Central 
-using the following command issued as root. 
+using the following command issued as root on the Seagate Central.
 
     apt-get -y install u-boot-tools
-    
-The following example shows this happening.
-        
-    root@SC-debian:/# apt-get -y install u-boot-tools
-    Reading package lists... Done
-    Building dependency tree... Done
-    Reading state information... Done
-    The following NEW packages will be installed:
-      u-boot-tools
-    0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
-    Need to get 156 kB of archives.
-    After this operation, 584 kB of additional disk space will be used.
-    Get:1 http://deb.debian.org/debian bullseye/main armel u-boot-tools armel 2021.01+dfsg-5 [156 kB]
-    Fetched 156 kB in 0s (869 kB/s)
-    Selecting previously unselected package u-boot-tools.
-    (Reading database ... 9734 files and directories currently installed.)
-    Preparing to unpack .../u-boot-tools_2021.01+dfsg-5_armel.deb ...
-    Unpacking u-boot-tools (2021.01+dfsg-5) ...
-    Setting up u-boot-tools (2021.01+dfsg-5) ...
 
 The important "fw_printenv" and "fw_setenv" utilities which manipulate the u-boot
-environment variables have now been installed. We need to create the configuration file
+environment variables should now been installed. We need to create the configuration file
 for these tools by issuing the following commands on the Seagate Central as root.
 
     cat << EOF > /etc/fw_env.config 
@@ -861,7 +842,7 @@ From now on when the unit has sucesfully booted up the status LED should turn
 from blinking green to solid green and when the unit is commanded to shutdown 
 or reboot the status LED should start blinking red.
 
-## Shutdown the unit 
+## Shutdown and Power down the Seagate Central 
 Before shutting down the unit run the following commands to clear the disk of
 any cached debian repository files and logs which can consume a large amount
 of space.
@@ -873,44 +854,73 @@ Shutdown the unit in preperation to take a snapshot of the disk image.
 
     shutdown -h now
     
-    
+Once the unit is shutdown, power off the unit.
+
 ## Creating the Seagate Central "upgrade" image
 After powering off the Seagate Central, remove the hard drive and
-connect it to the external Debian system with a USB hard drive reader.
+connect it to an external Linux system with a USB hard drive reader.
 
+Make sure this external Linux system has the "squashfs-tools" or
+equivalent package installed so that the "mksquashfs" utility
+is available.
 
-lsblk
+Log in to the external Linux system as the root user. All the commands
+shown from this point in this section should be executed with root
+privelidges.
 
+Check the identity of the drive connected using the hard drive reader
+with the "lsblk" command as per the following example where the device
+"sda" which has 8 partitions is clearly the Seagate Central hard drive.
 
-Mount the partition Seagate Central's Debian root partition.
+    # lsblk
+    NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+    sda           8:0    0   3.6T  0 disk
+      sda1        8:1    0    20M  0 part
+      sda2        8:2    0    20M  0 part
+      sda3        8:3    0     1G  0 part
+      sda4        8:4    0     1G  0 part
+      sda5        8:5    0     1G  0 part
+      sda6        8:6    0     1G  0 part
+      sda7        8:7    0     1G  0 part
+      sda8        8:8    0   3.6T  0 part
+    mmcblk0     179:0    0 119.1G  0 disk
+      mmcblk0p1 179:1    0    64M  0 part /boot/efi
+      mmcblk0p2 179:2    0   500M  0 part [SWAP]
+      mmcblk0p3 179:3    0 118.5G  0 part /
 
-mkdir /tmp/debian-root
-mount /dev/sdX3 /tmp/debian-root
+Mount the Seagate Central's primary boot partition and
+copy the uImage Linux kernel image to the local machine. Note that
+in the following examples we use "sdX" but substitute the name of your
+device.
 
-Make sure your build system has the "squashfs-tools" package installed
-
-    apt get squashfs-tools
-
-
+    mkdir /tmp/debian-boot
+    mount /dev/sdX1 /tmp/debian-boot
+    cp /tmp/debian-boot/uImage /tmp/uImage
     
-mksquashfs /tmp/sda3 /tmp/rfs.squashfs -all-root -noappend -Xcompression-level 1
 
-    
-    
-    
-Create the config.ser file
+Mount the Seagate Central's Debian root partition.
 
-new_version=$(date +%Y.%m%d.%H%M%S-S)
-new_release_date=$(date +%d-%m-%Y)
+    mkdir /tmp/debian-root
+    mount /dev/sdX3 /tmp/debian-root
 
-NAS-D:/Update/local# cat config.ser
-version=2022.0609.1221-S
-device=cirrus_v1
-from=all
-release_date=09-06-2022
-kernel=d3b7e4b0b0ea4ba527083fc4bc673c0a
-rfs=c9a5498ff915ca1c56fc0ec2f6a792dd     <---- md5sum rfs.squashfs
-uboot=a7d30b1fa163c12c9fe0abf030746629
+Create a squashfs image of the debian root partition. Note that we
+use a low level of compression so that the Seagate Central will not
+have difficulty decompressing the image during installation.
+
+    mksquashfs /tmp/debian-root /tmp/rfs.squashfs -all-root -noappend -Xcompression-level 1
+
+Create a "config.ser" file which is used by the Seagate Central upgrade
+process to validate the contents of the upgrade image.
+
+    echo "version=$(date +%Y.%m%d.%H%M%S-S)" > /tmp/config.ser
+    echo "device=cirrus_v1" >> /tmp/config.ser
+    echo "from=all" >> /tmp/config.ser
+    echo "release_date=$(date +%d-%m-%Y)" >> /tmp/config.ser
+    echo "kernel=$(md5sum /tmp/uImage | cut -c1-32)" >> /tmp/config.ser
+    echo "rfs=$(md5sum /tmp/rfs.squashfs | cut -c1-32)" >> /tmp/config.ser
+    echo "uboot=a7d30b1fa163c12c9fe0abf030746629" >> /tmp/config.ser
+    
+
 
 
 
