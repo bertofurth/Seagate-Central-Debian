@@ -2,6 +2,18 @@
 
 WORK IN PROGRESS. NOT FINISHED
 
+These instructions 
+
+Note that these instructions only get you to the point of installing
+a very basic Debian based Linux operating system. No other tools
+or utilities, such as samba file services or a web management interface
+are installed.
+
+Virtually all you'll be able to do after installing the image is ssh
+into the unit and then set it up yourself.
+
+
+
 Install Debian Linux on a Seagate Central NAS
 
 See  Brief Image Creation Notes file for very broad steps on how this 
