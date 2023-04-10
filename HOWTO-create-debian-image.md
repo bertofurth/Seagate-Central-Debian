@@ -613,14 +613,15 @@ installation. We need to manually configure the partitioning.
 
 Scroll down to the partitions that need to be modified.
 
-The Data/home partition
+HERE HERE. WE NEED TO NOT DO THIS YET!
+The Data partition
 
     Under "LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)"
     Select  "#1      4.0 TB       ext4"
 
     Use as: Ext4 journaling file system
     Format: yes, format it
-    Mount point: /home
+    Mount point: /home    HERE HERE
 
     Scroll down to and select "Done setting up the partition"
 
