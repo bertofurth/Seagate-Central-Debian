@@ -382,9 +382,9 @@ At ths point we need to configure u-boot to make sure to attempt to boot the
 primary partition by using the following commands.
 
 
-     setenv num_boot_tries 0
-     setenv current_kernel kernel1
-     saveenv
+    setenv num_boot_tries 0
+    setenv current_kernel kernel1
+    saveenv
 
 Here is an example of these commands being executed.
 
@@ -448,8 +448,11 @@ After this you should see the Linux kernel booting as per the following example
                 Supports 48-bit addressing
                 Capacity: 3815447.8 MB = 3726.0 GB (7814037168 x 512)
     Whitney # ext2load scsi 0:1 0x24000000 uImage
-
+    
     4316328 bytes read
+    Whitney # ext2load scsi 0:1 0x24A00000 uInitrd.new
+
+    10625068 bytes read
     Whitney # bootm 0x24000000 0x24A00000
     enter do_eth_down!!!
     ## Booting kernel from Legacy Image at 24000000 ...
@@ -498,15 +501,15 @@ If at any stage you see any error messages such as
     Title: Install the base system
     Description: Warning: Failure while unpacking required packages
 
-the just click on "Continue".
+then just click on "Continue".
 
 If any stage of the installation fails with a message saying 
 
      Title: Installation step failed
      Description: An installation step failed. You can try to run the failing item again from the menu, or skip it and choose something else. The failing step is: XXXXXXX
 
-Just select "Continue". This should take you back to the Debian installer main menu. 
-Scroll to the step that failed and try it again.
+then just select "Continue". This should take you back to the Debian 
+installer main menu. Scroll to the step that failed and try it again.
 
 Here are some brief notes describing notable parts of the installation 
 process and some suggested answers.
@@ -611,19 +614,9 @@ installation. We need to manually configure the partitioning.
 
     Title: Partition disks
 
-Scroll down to the partitions that need to be modified.
-
-HERE HERE. WE NEED TO NOT DO THIS YET!
-The Data partition
-
-    Under "LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)"
-    Select  "#1      4.0 TB       ext4"
-
-    Use as: Ext4 journaling file system
-    Format: yes, format it
-    Mount point: /home    HERE HERE
-
-    Scroll down to and select "Done setting up the partition"
+Scroll down to the partitions that need to be modified. Note
+that we do not setup the large data partition. This has to
+be done once Debian has booted up on the unit.
 
 The boot partition
 
@@ -657,8 +650,8 @@ The swap partiton
     Scroll down to and select "Done setting up the partition"
 
 After that the partition table should look something like this.
-"K" indicates that the partition will be kept and used by Debian, 
-and "F" indicates that it will be formatted.
+"K" indicates that the partition will be kept, and "F" or "f"
+indicates that it will be formatted.
 
     LVM VG vg1, LV lv1 - 4.0 TB Linux device-mapper (linear)  
          #1      4.0 TB    F  ext4                      /home 
@@ -882,19 +875,23 @@ Shutdown the unit in preperation to take a snapshot of the disk image.
     
     
 ## Creating the Seagate Central "upgrade" image
-Connect the hard drive to the build system.
+After powering off the Seagate Central, remove the hard drive and
+connect it to the external Debian system with a USB hard drive reader.
+
 
 lsblk
 
 
-mkdir /tmp/debian-root
-mount /dev/sda3 /tmp/debian-root
+Mount the partition Seagate Central's Debian root partition.
 
-mount /
-Make sure your build system has squashfs-tools package installed
+mkdir /tmp/debian-root
+mount /dev/sdX3 /tmp/debian-root
+
+Make sure your build system has the "squashfs-tools" package installed
 
     apt get squashfs-tools
-    
+
+
     
 mksquashfs /tmp/sda3 /tmp/rfs.squashfs -all-root -noappend -Xcompression-level 1
 
