@@ -20,7 +20,7 @@ services and other customizations are left to the user to complete.
 
 
 
-## Obtain the Debian upgrade image
+### Obtain the Debian upgrade image
 Download a Debian for Seagate Central installation image to a machine
 with connectivity to the Seagate Central being upgraded. Upgrade images
 can be found in the releases section of this project at
@@ -32,7 +32,7 @@ The image name will be something like "Debian-for-SC-XXXX-XX-XX.img"
 For interested parties, these images were created using the procedure
 documented in this project by HOWTO-create-debian-image.md
 
-## Install Debian Linux using the Seagate Central Web Management page
+### Install Debian Linux using the Seagate Central Web Management page
 Login to the Seagate Central's web based management tool as an admin
 level user.
 
@@ -55,7 +55,7 @@ Seagate Central native operating system. Instead wait for the status LED on
 the unit to come back to solid green to indicate that it has succesfully 
 rebooted. 
 
-### Establish an ssh connection to the unit
+#### Establish an ssh connection to the unit
 After the unit has rebooted you will need to establish an ssh connection
 to the IP address of the unit. The default username when using the firmware
 images in the Releases section of this project is "sc" and the password
@@ -117,16 +117,20 @@ commands to set new passwords as per the following example
 
 #### Change the system hostname
 The default system hostname is "SC-debian" but you will most likely
-wish to change this to something more meaningful. This can be
-done with the "hostnamectl set-hostname <new-name>" command. The
-/etc/hosts file also needs to be modified with the "nano"
+wish 
+to change this to something more meaningful. This can be
+
+done with the "hostnamectl set-hostname new-name" command. 
+The /etc/hosts file also needs to be modified with the "nano"
 or "vi" editor to remove any references to "SC-debian" and replace
 them with the new hostname.
 
     hostnamectl set-hostname NAS-X
     nano /etc/hosts
 
-#### Set the local timezone
+### Configure the local timezone and time
+By default the system will be set to the North America/Pacific timezone.
+Change this as follows.
 
     # Show current timezone settings
     timedatectl
@@ -148,22 +152,49 @@ Optional but suggested. Set up the system to sync to an NTP server for the time.
     apt install systemd-timesyncd
     timedatectl set-ntp yes
     
+### Make sure the swap partition is working
+By default the swap partition is configured to work on a 64K page system
+so it may need to be modified.
+
+    /sbin/mkswap /dev/sda6
+    swapon /dev/sda6
+
+Issue the "free" command to confirm that the swap space is now in use as
+per the following example
+
+    root@SC-debian:~# free
+                   total        used        free      shared  buff/cache   available
+    Mem:          247108       24972       91924         940      130212      213252
+    Swap:        1048572           0     1048572
+    
+### Format and mount the large Data partition
+
+format
+
+/sbin/mkfs.ext4 -F -L Data -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,large_file,hug
+e_file,uninit_bg,dir_nlink,extra_isize -m0 /dev/vg1/lv1
 
 
-When the system boots up we need to fix a few things
 
-/sbin/mkswap /dev/sda6
+
+Maybe just mount as "Data"
+
+Optionally move "home" to this directory
+
+
+    
 
 NOT YET rm /rfs.squashfs
 
 
 
-Need to change root and "sc" user passwords
 
-Need to format and mount /Data partition. Potentially might set it up as "home".
 
-/sbin/mkfs.ext4 -F -L Data -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,large_file,hug
-e_file,uninit_bg,dir_nlink,extra_isize -m0 /dev/vg1/lv1
+
+### Optional. Install Debian on backup partitions
+
+unsquashfs and then copy /etc directory
+
 
 
 Before doing any customization need to install debian to the alternate partitions.
