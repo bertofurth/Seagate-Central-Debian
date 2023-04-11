@@ -708,10 +708,12 @@ supplied during installation.
 A few Seagate Central specific modifications need to be made to the
 Debian system.
 
-First, we need to install the "u-boot-tools" Debian package on the Seagate Central 
-using the following command issued as root on the Seagate Central.
+First, we need to install the "u-boot-tools" and "dbus" Debian packages on
+the Seagate Central. These packages provide functionality that we'll depend
+on later in the procedure. Using the command issued as root on the
+Seagate Central to install these packages.
 
-    apt-get -y install u-boot-tools
+    apt-get -y install u-boot-tools dbus
 
 The important "fw_printenv" and "fw_setenv" utilities which manipulate the u-boot
 environment variables should now been installed. We need to create the configuration file
@@ -745,11 +747,12 @@ unit tries to boot up. If it reaches "4" then u-boot assumes that the kernel on
 a particular partition was not able to boot and so it will switch to trying to boot
 up the kernel and operating systems on the backup set of paritions.
 
-We also include some commands that set the LED status light appropriately and
-set the network CPU affinity to CPU 1.
+The script also commands the LED status light to turn solid green and sets the
+network interrupt CPU affinity to CPU 1, which our testing showed will slightly
+improve networking performance.
 
 Create these boot script and associated systemd service files with the following
-commands issued as root.
+commands issued as root on the Seagate Central.
 
     cat << EOF > /usr/sbin/sc-bootup.sh
     #!/bin/bash
@@ -805,10 +808,10 @@ From now on when the unit has sucesfully booted up the status LED should turn
 from blinking green to solid green and when the unit is commanded to shutdown 
 or reboot the status LED should start blinking red.
 
-The next thing to do is to modify the /etc/fstab file which governs what
-filesystems are mounted on boot. In the original fstab file, the Debian
-installer makes use of UUIDs to specify partitions but this is not helpful
-in our case. We need to specify partiton names instead.
+Next, modify the /etc/fstab file which governs what filesystems are mounted
+on boot. In the original fstab file, the Debian installer makes use of UUIDs
+to specify partitions but this is not helpful in our case. We need to specify
+partiton names instead.
 
     cat << EOF > /etc/fstab
     # /etc/fstab: static file system information.
@@ -822,7 +825,7 @@ Once the unit has booted properly then users can do further customization
 of the fstab file to include the large Data partition and possibly the
 "boot" and other partitions.
 
-## Shutdown and Power down the Seagate Central 
+## Shutdown and power down the Seagate Central 
 Before shutting down the unit run the following commands to clear the disk of
 any cached debian repository files and logs which can consume a large amount
 of space.
