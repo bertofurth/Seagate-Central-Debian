@@ -835,6 +835,10 @@ Once the unit has booted properly then users can do further customization
 of the fstab file to include the large Data partition and possibly the
 "boot" and other partitions.
 
+At this point reboot the unit with the "reboot" command and make sure
+it comes up as before. Log back in as the root user to finish off the
+procedure.
+
 ## Shutdown and power off the Seagate Central 
 Before shutting down the unit run the following commands to clear the disk of
 any cached debian repository files and logs which can consume a large amount
