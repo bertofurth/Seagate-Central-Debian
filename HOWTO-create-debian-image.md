@@ -532,12 +532,12 @@ process and some suggested answers.
     Title: Continue installation remotely using SSH
     Description: To continue the installation, please use an SSH client
 
-At this point you can elect to open a new window and ssh into the unit using 
-the indicated IP address, or you can select "Continue" to proceed with 
-installation using the serial console. I'd suggest opening an ssh session 
-while at the same time moving to the log screen in the serial console to monitor
-for serious errors. This can be done by issuing the GNU screen command 
-CTRL-A followed by the "4" key to select window "4" which is the log screen.
+At this point you can elect to ssh into the unit using the indicated IP address, 
+or you can select "Continue" to proceed with installation using the serial console.
+I'd suggest opening an ssh session while at the same time moving to the log 
+screen in the serial console to monitor for serious errors. You can move
+between GNU screen windows by issuing the keystroke sequence "CTRL-A 4" 
+to select window "4" which is the log screen.
 
 If you wish to ssh into the unit then use username "installer" with password 
 "SCdebian2022" (as configured above)
@@ -557,8 +557,10 @@ If you wish to ssh into the unit then use username "installer" with password
     Title: Download installer components
     Suggested Answer: Yes
 
-The installer program and parameters will be downloaded. This may take a few
-minutes.
+The installer program and parameters will be downloaded. This may take a
+minute or so. Next we configure the region for the unit and the
+root password. Note that all of these parameters can be changed
+by the user once the unit actually comes up.
 
     Title: Select your location
     Description: Continent or region
@@ -572,12 +574,9 @@ minutes.
     Description: Root password
     Suggested Answer: SCdebian2022  (or whatever you like)
 
+    Title: Set up users and passwords
     Description: Re-enter password to verify
     Suggested Answer: SCdebian2022
-
-    Title: Configure the clock
-    Description: Select your time zone
-    Answer: Pacific (or whatever your timezone is)
 
 Note that in the following section where we create the first
 user, the username cannot be set to "admin" as this is a reserved
@@ -600,20 +599,28 @@ once the system is up and running.
     Description: Re-enter password to verify
     Suggested Answer: SCdebian2022
 
+Next select the time zone.
+
+    Title: Configure the clock
+    Description: Select your time zone
+    Answer: Pacific (or whatever your timezone is)
+    
 The disk partitioning section is the most complicated part of the
 installation. We need to manually configure the partitioning.
 
     Title: Partition disks
     Description: Partitioning method
-    Answer: Manual (Bottom option)
-
-    Title: Partition disks
+    Answer: Manual (Scroll down to the bottom option)
 
 Scroll down to the partitions that need to be modified. Note
 that we do not setup the large "Data" partition. This has to
-be done once Debian has booted up on the unit.
+be done once Debian has booted up on the unit. You may need
+to scroll up and down in the text display to see all the
+available options.
 
-The root file system partition    
+First, configure the root file system partition    
+
+    Title: Partition disks
 
     Under "SCSI1 (0,0,0) (sda)"
     Select Partition #3 "Root_File_System_1"
@@ -624,7 +631,7 @@ The root file system partition
 
     Scroll down to and select "Done setting up the partition"
 
-The swap partiton
+Next, configure the swap partiton
 
     Under "SCSI1 (0,0,0) (sda)"
     Select Partition #6 "Swap"
@@ -633,9 +640,8 @@ The swap partiton
     
     Scroll down to and select "Done setting up the partition"
 
-
-After configuring these two partitions 
-Scroll right down to the bottom of the screen and select 
+After configuring these two partitions scroll right down to the bottom 
+of the menu and select 
 
     Finish partitioning and write changes to disk
 
@@ -665,8 +671,9 @@ Debian servers. Make sure to select "Yes" to continue the installation.
 
     Answer: Yes (Make sure to answer Yes!!)
 
-You will be asked to partiticipate in a package usage survey. I'd 
-suggest answering no.
+A few minutes later after installing more software, you will be asked to
+partiticipate in a package usage survey. I'd suggest answering no. Users
+can opt in to it later if they wish to.
 
     Select and install software
 
@@ -674,14 +681,17 @@ suggest answering no.
     Description: Participate in the package usage survey?
     Answer: "No"
 
-After about 10 more minutes you will be presented with a screen 
+After approximately 10 minutes or so you will be presented with a screen 
 titled "Software selection". You'll be presented with a list packages
 and sofware to install. In order to minimize the size of the 
-installed software, don't select anything but the "SSH server". If 
-"Standard System Utilites" or any other options are selected 
-then de-select them. You can install whatever other software you 
-like once the system is up and running. You may need to scroll
-down to deselect "Standard Software Utilities".
+installed software, make sure that nothing but the "SSH server" is
+selected. If "Standard System Utilites" or any other options are selected 
+then de-select them. Users can install whatever other software you 
+like once the system is up and running but the goal here is to keep the
+image as small as possible. You may need to scroll down to deselect
+"Standard Software Utilities".
+
+The following prompts will appear at the end of the installation process.
 
     Title: Continue without boot loader
     Description: No boot loader installed
@@ -694,10 +704,10 @@ down to deselect "Standard Software Utilities".
     
     Answer: Continue
 
-Go back to the serial console session and the unit should reboot. After a
-minute or so you should be presented with the Debian login prompt where
-you can log into the system. Log in as root using the credentials 
-supplied during installation.
+Go back to the serial console session and you'll see the unit rebooting.
+After a minute or so you should be presented with the Debian login prompt
+on the console where you can log into the system. Log in as root using the
+credentials supplied during installation.
 
     Debian GNU/Linux 11 SC-debian ttyS0
 
@@ -706,7 +716,7 @@ supplied during installation.
       
 ## Post Debian installation steps
 A few Seagate Central specific modifications need to be made to the
-Debian system.
+Debian system before it can be compiled into an image.
 
 First, we need to install the "u-boot-tools" and "dbus" Debian packages on
 the Seagate Central. These packages provide functionality that we'll depend
@@ -725,8 +735,8 @@ for these tools by issuing the following commands on the Seagate Central as root
     /dev/mtd2               0x0000          0x8000          0x1000
     EOF
 
-After creating this fw_env.config file the "fw_printenv" command should display
-the u-boot environment variables as per the following example
+After creating this fw_env.config file, check that the "fw_printenv" command
+correctly displays the u-boot environment variables as per the following example
 
     root@SC-debian:~# fw_printenv
     baudrate=38400
@@ -744,7 +754,7 @@ tasks.
 Most notably we need to reset the "num_boot_tries" u-boot variable back to zero
 on each boot. This variable is incremented by u-boot each time the 
 unit tries to boot up. If it reaches "4" then u-boot assumes that the kernel on
-a particular partition was not able to boot and so it will switch to trying to boot
+a particular partition was not able to boot and it will switch to trying to boot
 up the kernel and operating systems on the backup set of paritions.
 
 The script also commands the LED status light to turn solid green and sets the
@@ -825,7 +835,7 @@ Once the unit has booted properly then users can do further customization
 of the fstab file to include the large Data partition and possibly the
 "boot" and other partitions.
 
-## Shutdown and power down the Seagate Central 
+## Shutdown and power off the Seagate Central 
 Before shutting down the unit run the following commands to clear the disk of
 any cached debian repository files and logs which can consume a large amount
 of space.
@@ -837,7 +847,7 @@ Shutdown the unit in preperation to take a snapshot of the disk image.
 
     shutdown -h now
     
-Once the unit is shutdown, power off the unit.
+After a minute or so once the unit has completely shutdown, power off the unit.
 
 ## Creating the Seagate Central "upgrade" image
 After powering off the Seagate Central, remove the hard drive and
@@ -847,12 +857,12 @@ Make sure this external Linux system has the "squashfs-tools" or
 equivalent package installed so that the "mksquashfs" utility
 is available.
 
-Log in to the external Linux system as the root user. All the commands
-shown from this point in this section should be executed with root
-privelidges.
+All the commands shown from this point in this section should be
+executed with root privelidges (i.e. logged in as root or with 
+the "sudo" prefix)
 
 Check the identity of the drive connected using the hard drive reader
-with the "lsblk" command as per the following example where the device
+with the "lsblk" command. In the following example we see that the device
 "sda" which has 8 partitions is clearly the Seagate Central hard drive.
 
     # lsblk
@@ -872,22 +882,22 @@ with the "lsblk" command as per the following example where the device
       mmcblk0p3 179:3    0 118.5G  0 part /
 
 Mount the Seagate Central's primary boot partition and
-copy the uImage Linux kernel image to the local machine. Note that
-in the following examples we use "sdX" but substitute the name of your
-device.
+root partiton. In these examples we use the "tmp" directory to do
+our work but you can use another location. Note that in the following 
+examples we use "sdX" for the drive name. You will need to substitute 
+the name of the drive on your device (e.g. "sda")
 
     mkdir /tmp/debian-boot
     mount /dev/sdX1 /tmp/debian-boot
-    cp /tmp/debian-boot/uImage /tmp/uImage
-    
-
-Mount the Seagate Central's Debian root partition.
-
     mkdir /tmp/debian-root
     mount /dev/sdX3 /tmp/debian-root
 
+Next, copy the uImage Linux Kernel to the local machine.
+
+    cp /tmp/debian-boot/uImage /tmp/uImage
+    
 Create a squashfs image of the debian root partition. Note that we
-use a low level of compression so that the Seagate Central will not
+use a low level of compression (1) so that the Seagate Central will not
 have difficulty decompressing the image during installation.
 
     mksquashfs /tmp/debian-root /tmp/rfs.squashfs -all-root -noappend -Xcompression-level 1
@@ -903,16 +913,30 @@ process to validate the contents of the upgrade image.
     echo "rfs=$(md5sum /tmp/rfs.squashfs | cut -c1-32)" >> /tmp/config.ser
     echo "uboot=a7d30b1fa163c12c9fe0abf030746629" >> /tmp/config.ser
     
-Finally, create the image with the following commands.
+The contents of this file should look something like this example
+
+    # cat /tmp/config.ser
+    version=2023.0410.144332-S
+    device=cirrus_v1
+    from=all
+    release_date=10-04-2023
+    kernel=7321311ea92e024d464fba8e2222979b
+    rfs=1b3bf577cba7078a3de78cfec09ebcd0
+    uboot=a7d30b1fa163c12c9fe0abf030746629
+
+Finally, create the Seagate Central upgrade image with the following commands.
 
     tar -C /tmp -czvf Debian-for-SC.img rfs.squashfs uImage config.ser
 
 The resultant "Debian-for-SC.img" file can now be used to upgrade the
 Seagate Central as per the normal web based management tool procedure
-followed up by the steps in the main README.md file in this project.
+followed up by the steps in the main README.md file in this project. The
+image should be about 120MB in size.
+
+This image can now be used to install Debian on a Seagate Central, in conjunction
+with the instructions in the README.md file in this project.
 
 ## Technical Notes
-
 ### Notes about "anna"
 "anna" is the very simple Debian package installation tool used during installation
 of the Debian operating system.
@@ -946,7 +970,6 @@ also be updated.
 
 
 ## Troubleshooting
-
 In some rare cases after a major upgrade the ethernet interface can fail
 to operate properly unless the unit is power cycled. If network connectivity
 is lost after the upgrade then shutdown with the "shutdown -h now" command
