@@ -718,6 +718,7 @@ credentials supplied during installation.
 A few Seagate Central specific modifications need to be made to the
 Debian system before it can be compiled into an image.
 
+### Install extra required Debian packages
 First, we need to install the "u-boot-tools" and "dbus" Debian packages on
 the Seagate Central. These packages provide functionality that we'll depend
 on later. Using the command issued as root on the Seagate Central to install
@@ -750,6 +751,7 @@ Note that the values you see might be slighty different.
     . . . .
     num_boot_tries=0
     
+### Create Seagate Central specific boot scripts    
 Next, we need to create some boot scripts that perform Seagate Central specific
 tasks. 
 
@@ -825,7 +827,8 @@ From now on when the unit has sucesfully booted up the status LED should turn
 from blinking green to solid green and when the unit is commanded to shutdown 
 or reboot the status LED should start blinking red.
 
-Next, modify the /etc/fstab file which governs what filesystems are mounted
+### Customize filesystem configuration in /etc/fstab
+Modify the /etc/fstab file which governs what filesystems are mounted
 on boot. In the original fstab file, the Debian installer makes use of UUIDs
 to specify partitions but this is not helpful in our case because the UUIDs
 on the target system will not match the ones on the system we're creating this
@@ -838,19 +841,37 @@ image with. We need to specify partiton names instead.
     /dev/root       /               auto    errors=remount-ro      0      1
     /dev/sda6       none            swap    sw                     0      0
     EOF
-    
+
 Once the unit has booted properly then users can perform further customization
 of the fstab file to include the large Data partition and possibly the
 "boot" and other partitions. 
 
+### Customize dhcp client configuration in /etc/dhcp/dhclient.conf
+We need to modify the default dhcp client configuration to ensure that
+the unit sends a dhcp client identifier that is the same as the one that
+the Seagate Central native firmware would have sent. This is done so that
+when the unit is upgraded to Debian, it will be more likely to get the same
+DHCP assigned IP address as when it was running the native firmware. This
+makes it easier for the user to be able to reconnect to the unit after
+the upgrade. Make this modification with the following command
+
+    echo "send dhcp-client-identifier = hardware;" >> /etc/dhcp/dhclient.conf
+
+Note that if a user has configured their Seagate Central to use a static
+IP address, then the unit will come up with a different DHCP assigned IP 
+address and they will have to go through the sometimes tedious process of
+finding the unit's new IP address.
+
+## Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
-it comes up as before. Log back in as the root user to finish off the
+it comes up as before. Log back in as the root user to complete the
 procedure.
 
-## Shutdown and power off the Seagate Central 
-Before shutting down the unit run the following commands to clear the disk of
-any cached debian repository files and logs which can consume a large amount
-of space.
+## Clean cached files and power off the Seagate Central 
+After confirming that the unit has succesfully rebooted, run the following 
+commands to clear the disk of any cached Debian repository files and logs
+which can consume a large amount of space. We don't need to include these
+in the upgrade image.
     
     apt-get clean
     rm -rf /var/log/*
