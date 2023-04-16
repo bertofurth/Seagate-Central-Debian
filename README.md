@@ -278,7 +278,7 @@ Expert users might be inclined to modify this layout to grant the root partition
 | sda3            |  1GB   |  ext4   |  Root_File_System_1  |  Emergency Root File System   |
 | sda4            |  3GB   |  ext4   |  Root_File_System_2  |  Primary Root File System     |
 | sda5            |  1GB   |  swap   |  Swap                |  Linux Swap                   |
-| sda8            |  ...   |  lvm    |  Data                |  Large Data Partition         |
+| sda6            |  ...   |  lvm    |  Data                |  Large Data Partition         |
 ---------------------------------------------------------------------------------------------
 
 A "basic/emergency" version of Debian could be installed on Kernel_1 / Root_file_System_1 and 
