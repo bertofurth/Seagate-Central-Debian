@@ -1,9 +1,14 @@
 **WORK IN PROGRESS. NOT FINISHED**
 
 
+TODO
+
+rootfs support in kernel? Make a 4k config file
+
+
 # Debian for Seagate Central NAS
-This is a procedure for installing an up to date (2023) version of
-a basic Debian Linux distribution on a Seagate Central NAS.
+This is a procedure for installing a basic Debian Linux system 
+on a Seagate Central NAS.
 
 ## Warning 
 **Performing modifications of this kind on the Seagate Central is not 
@@ -37,6 +42,8 @@ https://github.com/bertofurth/Seagate-Central-Debian/releases
 
 The image name will be something like "Debian-for-SC-XXXX-XX-XX.img"
 
+As of writing the image will install Debian version 11, "Bullseye".
+
 For interested parties, these images were created using the procedure
 documented in this project by HOWTO-create-debian-image.md
 
@@ -58,38 +65,44 @@ unit the web page will display a message
 
     The device is rebooting after completing system updates and changes. Wait until the page refreshes and the Seagate Central application appears.
 
-This page will **never** refresh because the unit will no longer be running a
-Seagate Central native operating system. Instead wait for the status LED on
-the unit to come back to solid green to indicate that it has succesfully 
-rebooted. 
+Note that this page will **never** refresh because the unit will no longer 
+be running a Seagate Central native operating system. Instead wait for the
+status LED on the unit to come back to solid green to indicate that it has
+succesfully rebooted. 
 
 ### Establish an ssh connection to the unit
 After the unit has rebooted you will need to establish an ssh connection
 to the IP address of the unit. The default username when using the firmware
-images in the Releases section of this project is "sc" and the password
-is "SCdebian2022". The default root password is also "SCdebian2022".
+images published in the Releases section of this project is "sc" and the
+password is "SCdebian2022". The default root password is also "SCdebian2022".
 
-Unfortunately the unit will be likely to have acquired a different DHCP assigned
-IP address from the one it used to have while running the Seagate Central 
-native firmware. This is because Debian uses a different DHCP client identifier 
-than the old operating system so your DHCP server will have assigned it a different
-IP address. For this reason you will have to determine the IP address
-of the new system before connecting to it and there isn't a straight forward
-way to do this.
+In most cases the unit should come back up with the same DHCP assigned IP address
+it had while running Seagate Central native firmware. However, if your Seagate
+Central was configured with a static IP address then the unit will be likely to
+have acquired a different DHCP assigned IP address from the one it used to have.
 
-The easiest way is to use a "network scanner" tool to search for the 
-Seagate Central. Another alternative is to use the linux "nmap"
-utility to search for hosts on the local network that are offering an
-ssh service on port 22. In the following example the local network segment
-has address 192.168.1.X so we use the following form of nmap command.
+For this reason you will have to determine the IP address of the new system
+before connecting to it and there isn't a straight forward way to do this.
+
+The easiest way is to use a "network scanner" or "ip scanner" style tool or app
+on a computer connected to the same network as the Seagate Central to find it's
+IP address.
+
+If you have a Linux system then another alternative is to use the Linux "nmap"
+utility to search for hosts on the local network that are offering an ssh service
+on port 22.
+
+In the following example the local network segment has address 192.168.1.X so we
+use the following form of nmap command.
 
     nmap -p 22 192.168.1.0/24
 
 This command will report the IP and MAC addresses of all devices on the
-local network segment (use your own local IP subnet in the command)
+local network segment with an ssh service available. You must use your
+own local IP subnet in the command.
 
-One of the results should look similar to the following and would indicate
-the IP address of the Seagate Central
+Scroll through the results. One of the listed hosts should look similar 
+to the following and will indicate the IP address of the Seagate Central
 
     Nmap scan report for 192.168.1.58
     Host is up (0.00014s latency).
@@ -124,52 +137,46 @@ commands to set new passwords as per the following example
     passwd: password updated successfully
 
 #### Change the system hostname
-The default system hostname is "SC-debian" but you will most likely
-wish to change this to something more meaningful. Unfortunately changing
-the system hostname is not completely straightforward.
+The default system hostname is set to "SC-debian", however you may
+wish to change it to something more meaningful. If you
+wish to change the system hostname, it is strongly suggested that you
+change it before installing any more tools or utilities. 
 
-This can be
-done with the following commands.
+This can be done with the following commands issued as root
 
-Note also that the /etc/hosts file needs to be modified with the "nano"
-or "vi" editor to remove any references to "SC-debian" and replace
-them with the new hostname.
+    hostnamectl set-hostname NewHostName
+    sed -i 's/SC-debian/NewHostName/g' /etc/hosts
+    sed -i 's/SC-debian/NewHostName/g' /etc/ssh/*.pub
 
-    hostnamectl set-hostname NAS-X
-    nano /etc/hosts
-
-dpkg-reconfigure openssh-server
-https://askubuntu.com/questions/682070/how-to-restore-ssh-config-file-in-etc-ssh
-
-
-Also look at
-
-https://wiki.debian.org/Hostname#OpenSSH_server
 
 
 
 ### Configure the local timezone and time
 By default the system will be set to the North America/Pacific timezone.
-Change this as follows.
+Change this as per the following example using your own timezone.
 
     # Show current timezone settings
     timedatectl
     
-    # Show available timezones
+    # Show available timezones. Take note of which one
+    # represents your local timezone
     timedatectl list-timezones
     
-    # Note your timezone and change to it
+    # Note your timezone and change to it. Substitute
+    # your timezone as per the listing from the last
+    # command
     timedatectl set-timezone Europe/Berlin
     
-    # Check the time 
+    # Check the system time 
     timedatectl
     
-    # If necessary set the current time
-    timedatectl set-time "2022-01-30 10:30:00"
+    # If necessary set the current time using
+    # a date and time style as per this example
+    timedatectl set-time "2022-01-30 10:35:00"
     
-Optional but suggested. Set up the system to sync to an NTP server for the time.
-    
-    apt install systemd-timesyncd
+    # Optional but suggested. Set up the system to sync 
+    # to an NTP server for the time.    
+    apt-get -y install systemd-timesyncd
     timedatectl set-ntp yes
     
 ### Make sure the swap partition is working
@@ -191,7 +198,6 @@ per the following example
     Swap:        1048572           0     1048572
     
 ### Format and mount the large Data partition
-
 
 **Warning: As stated in the introduction of this document, this step will delete
 all files and data from the large Data partition.**
