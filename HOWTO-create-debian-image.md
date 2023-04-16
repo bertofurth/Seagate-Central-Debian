@@ -720,14 +720,15 @@ Debian system before it can be compiled into an image.
 
 First, we need to install the "u-boot-tools" and "dbus" Debian packages on
 the Seagate Central. These packages provide functionality that we'll depend
-on later in the procedure. Using the command issued as root on the
-Seagate Central to install these packages.
+on later. Using the command issued as root on the Seagate Central to install
+these packages.
 
     apt-get -y install u-boot-tools dbus
 
 The important "fw_printenv" and "fw_setenv" utilities which manipulate the u-boot
 environment variables should now been installed. We need to create the configuration file
-for these tools by issuing the following commands on the Seagate Central as root.
+for these tools (/etc/fw_env.config) by issuing the following commands on the Seagate
+Central as root.
 
     cat << EOF > /etc/fw_env.config 
     # MTD device name       Device offset   Env. size       Flash sector size       Number of sectors
@@ -736,7 +737,8 @@ for these tools by issuing the following commands on the Seagate Central as root
     EOF
 
 After creating this fw_env.config file, check that the "fw_printenv" command
-correctly displays the u-boot environment variables as per the following example
+correctly displays the u-boot environment variables as per the following example.
+Note that the values you see might be slighty different.
 
     root@SC-debian:~# fw_printenv
     baudrate=38400
@@ -748,14 +750,14 @@ correctly displays the u-boot environment variables as per the following example
     . . . .
     num_boot_tries=0
     
-Next, we need to create a few boot scripts that perform Seagate Central specific
+Next, we need to create some boot scripts that perform Seagate Central specific
 tasks. 
 
 Most notably we need to reset the "num_boot_tries" u-boot variable back to zero
 on each boot. This variable is incremented by u-boot each time the 
 unit tries to boot up. If it reaches "4" then u-boot assumes that the kernel on
 a particular partition was not able to boot and it will switch to trying to boot
-up the kernel and operating systems on the backup set of paritions.
+up the kernel and operating systems on the backup set of partitions.
 
 The script also commands the LED status light to turn solid green and sets the
 network interrupt CPU affinity to CPU 1, which our testing showed will slightly
@@ -764,6 +766,7 @@ improve networking performance.
 Create these boot script and associated systemd service files with the following
 commands issued as root on the Seagate Central.
 
+    # Create the startup script
     cat << EOF > /usr/sbin/sc-bootup.sh
     #!/bin/bash
     echo Performing Seagate Central Specific Startup
@@ -777,6 +780,7 @@ commands issued as root on the Seagate Central.
     EOF
     chmod u+x /usr/sbin/sc-bootup.sh
     
+    # Create the shutdown script
     cat << EOF > /usr/sbin/sc-shutdown.sh
     #!/bin/bash
     echo Performing Seagate Central Specific Shutdown
@@ -785,6 +789,7 @@ commands issued as root on the Seagate Central.
     EOF
     chmod u+x /usr/sbin/sc-shutdown.sh
     
+    # Create the systemd service file for startup
     cat << EOF > /etc/systemd/system/sc-bootup.service
     [Unit]
     Description=Seagate Central specific bootup
@@ -797,6 +802,7 @@ commands issued as root on the Seagate Central.
     WantedBy=multi-user.target
     EOF
 
+    # Create the systemd service file for shutdown
     cat << EOF > /etc/systemd/system/sc-shutdown.service
     [Unit]
     Description=Seagate Central specific shutdown
@@ -810,6 +816,7 @@ commands issued as root on the Seagate Central.
     WantedBy=halt.target shutdown.target reboot.target
     EOF
     
+    # Enable the new services in systemd
     systemctl start sc-bootup
     systemctl enable sc-bootup
     systemctl enable sc-shutdown
@@ -820,20 +827,21 @@ or reboot the status LED should start blinking red.
 
 Next, modify the /etc/fstab file which governs what filesystems are mounted
 on boot. In the original fstab file, the Debian installer makes use of UUIDs
-to specify partitions but this is not helpful in our case. We need to specify
-partiton names instead.
+to specify partitions but this is not helpful in our case because the UUIDs
+on the target system will not match the ones on the system we're creating this
+image with. We need to specify partiton names instead.
 
     cat << EOF > /etc/fstab
     # /etc/fstab: static file system information.
     #
     # <file system> <mount point>   <type>  <options>             <dump>  <pass>
-    rootfs          /               auto    errors=remount-ro      0      1
+    /dev/root       /               auto    errors=remount-ro      0      1
     /dev/sda6       none            swap    sw                     0      0
     EOF
     
-Once the unit has booted properly then users can do further customization
+Once the unit has booted properly then users can perform further customization
 of the fstab file to include the large Data partition and possibly the
-"boot" and other partitions.
+"boot" and other partitions. 
 
 At this point reboot the unit with the "reboot" command and make sure
 it comes up as before. Log back in as the root user to finish off the
@@ -855,7 +863,8 @@ After a minute or so once the unit has completely shutdown, power off the unit.
 
 ## Creating the Seagate Central "upgrade" image
 After powering off the Seagate Central, remove the hard drive and
-connect it to an external Linux system with a USB hard drive reader.
+connect it to an external Linux system using something like a
+USB hard drive reader.
 
 Make sure this external Linux system has the "squashfs-tools" or
 equivalent package installed so that the "mksquashfs" utility
@@ -886,40 +895,39 @@ with the "lsblk" command. In the following example we see that the device
       mmcblk0p3 179:3    0 118.5G  0 part /
 
 Mount the Seagate Central's primary boot partition and
-root partiton. In these examples we use the "tmp" directory to do
-our work but you can use another location. Note that in the following 
-examples we use "sdX" for the drive name. You will need to substitute 
+root partiton. Note that in the following examples we use
+"sdX" for the drive name. You will need to substitute 
 the name of the drive on your device (e.g. "sda")
 
-    mkdir /tmp/debian-boot
-    mount /dev/sdX1 /tmp/debian-boot
-    mkdir /tmp/debian-root
-    mount /dev/sdX3 /tmp/debian-root
+    mkdir debian-boot
+    mount /dev/sdX1 debian-boot
+    mkdir debian-root
+    mount /dev/sdX3 debian-root
 
 Next, copy the uImage Linux Kernel to the local machine.
 
-    cp /tmp/debian-boot/uImage /tmp/uImage
+    cp debian-boot/uImage uImage
     
 Create a squashfs image of the debian root partition. Note that we
 use a low level of compression (1) so that the Seagate Central will not
 have difficulty decompressing the image during installation.
 
-    mksquashfs /tmp/debian-root /tmp/rfs.squashfs -all-root -noappend -Xcompression-level 1
+    mksquashfs debian-root rfs.squashfs -all-root -noappend -Xcompression-level 1
 
 Create a "config.ser" file which is used by the Seagate Central upgrade
 process to validate the contents of the upgrade image.
 
-    echo "version=$(date +%Y.%m%d.%H%M%S-S)" > /tmp/config.ser
-    echo "device=cirrus_v1" >> /tmp/config.ser
-    echo "from=all" >> /tmp/config.ser
-    echo "release_date=$(date +%d-%m-%Y)" >> /tmp/config.ser
-    echo "kernel=$(md5sum /tmp/uImage | cut -c1-32)" >> /tmp/config.ser
-    echo "rfs=$(md5sum /tmp/rfs.squashfs | cut -c1-32)" >> /tmp/config.ser
-    echo "uboot=a7d30b1fa163c12c9fe0abf030746629" >> /tmp/config.ser
+    echo "version=$(date +%Y.%m%d.%H%M%S-S)" > config.ser
+    echo "device=cirrus_v1" >> config.ser
+    echo "from=all" >> config.ser
+    echo "release_date=$(date +%d-%m-%Y)" >> config.ser
+    echo "kernel=$(md5sum /tmp/uImage | cut -c1-32)" >> config.ser
+    echo "rfs=$(md5sum /tmp/rfs.squashfs | cut -c1-32)" >> config.ser
+    echo "uboot=a7d30b1fa163c12c9fe0abf030746629" >> config.ser
     
 The contents of this file should look something like this example
 
-    # cat /tmp/config.ser
+    # cat config.ser
     version=2023.0410.144332-S
     device=cirrus_v1
     from=all
@@ -930,12 +938,12 @@ The contents of this file should look something like this example
 
 Finally, create the Seagate Central upgrade image with the following commands.
 
-    tar -C /tmp -czvf Debian-for-SC.img rfs.squashfs uImage config.ser
+    tar -czvf Debian-for-SC.img rfs.squashfs uImage config.ser
 
 The resultant "Debian-for-SC.img" file can now be used to upgrade the
 Seagate Central as per the normal web based management tool procedure
 followed up by the steps in the main README.md file in this project. The
-image should be about 120MB in size.
+image should be in the order of about 120MB in size.
 
 This image can now be used to install Debian on a Seagate Central, in conjunction
 with the instructions in the README.md file in this project.
@@ -976,7 +984,7 @@ also be updated.
 ## Troubleshooting
 In some rare cases after a major upgrade the ethernet interface can fail
 to operate properly unless the unit is power cycled. If network connectivity
-is lost after the upgrade then shutdown with the "shutdown -h now" command
-via the serial console and then after a minute physically power cycle the 
-unit.
+is lost after the Debian installtion process then shutdown with the
+"shutdown -h now" command via the serial console and then after a minute
+physically power cycle the unit.
 
