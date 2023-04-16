@@ -3,7 +3,7 @@
 
 TODO
 
-rootfs support in kernel? Make a 4k config file
+Make a 4k config file
 
 
 # Debian for Seagate Central NAS
