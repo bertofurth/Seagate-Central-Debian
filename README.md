@@ -1,12 +1,21 @@
+**WORK IN PROGRESS. NOT FINISHED**
+
+
 # Debian for Seagate Central NAS
 This is a procedure for installing an up to date (2023) version of
-Debian Linux distribution on a Seagate Central NAS.
+a basic Debian Linux distribution on a Seagate Central NAS.
 
-This procedure will overwrite any data and settings stored on the
-unit so be sure to make a backup of any important data before
-proceeding.
+## Warning 
+**Performing modifications of this kind on the Seagate Central is not 
+without risk. Making the changes suggested in these instructions will
+likely void any warranty and in rare circumstances may lead to the
+device becoming unusable or damaged.**
 
-**WORK IN PROGRESS. NOT FINISHED**
+**Do not use the products of this project in a mission critical system
+or in a system that people's health or safety depends on.**
+
+**This procedure will overwrite any data or settings on the unit being
+worked on. Be sure to backup any important data before proceeding.**
 
 Note that these instructions only get the unit to the point of having a
 a very basic Debian based Linux operating system with a working ssh
@@ -14,12 +23,11 @@ service. No other services, such as a samba file sharing service or
 a web management interface are installed. Installing these types of
 services and other customizations are left to the user to complete.
 
-
 ## TLDNR
+TODO
 
 
-
-
+## Procedure
 ### Obtain the Debian upgrade image
 Download a Debian for Seagate Central installation image to a machine
 with connectivity to the Seagate Central being upgraded. Upgrade images
@@ -32,7 +40,7 @@ The image name will be something like "Debian-for-SC-XXXX-XX-XX.img"
 For interested parties, these images were created using the procedure
 documented in this project by HOWTO-create-debian-image.md
 
-### Install Debian Linux using the Seagate Central Web Management page
+### Install the Debian image using the Seagate Central Web Management page
 Login to the Seagate Central's web based management tool as an admin
 level user.
 
@@ -50,12 +58,12 @@ unit the web page will display a message
 
     The device is rebooting after completing system updates and changes. Wait until the page refreshes and the Seagate Central application appears.
 
-This page will never refresh because the unit will no longer be running a
+This page will **never** refresh because the unit will no longer be running a
 Seagate Central native operating system. Instead wait for the status LED on
 the unit to come back to solid green to indicate that it has succesfully 
 rebooted. 
 
-#### Establish an ssh connection to the unit
+### Establish an ssh connection to the unit
 After the unit has rebooted you will need to establish an ssh connection
 to the IP address of the unit. The default username when using the firmware
 images in the Releases section of this project is "sc" and the password
@@ -107,26 +115,38 @@ passwords for the root and "sc" users. Issue the "passwd root" and "passwd su"
 commands to set new passwords as per the following example
 
     root@SC-debian:~# passwd root
-    New password: NewRootPassword
-    Retype new password: NewRootPassword
+    New password: YourNewRootPassword
+    Retype new password: YourNewRootPassword
     passwd: password updated successfully
     root@SC-debian:~# passwd sc
-    New password: NewUserPassword
-    Retype new password: NewUserPassword
+    New password: YourNewUserPassword
+    Retype new password: YourNewUserPassword
     passwd: password updated successfully
 
 #### Change the system hostname
 The default system hostname is "SC-debian" but you will most likely
-wish 
-to change this to something more meaningful. This can be
+wish to change this to something more meaningful. Unfortunately changing
+the system hostname is not completely straightforward.
 
-done with the "hostnamectl set-hostname new-name" command. 
-The /etc/hosts file also needs to be modified with the "nano"
+This can be
+done with the following commands.
+
+Note also that the /etc/hosts file needs to be modified with the "nano"
 or "vi" editor to remove any references to "SC-debian" and replace
 them with the new hostname.
 
     hostnamectl set-hostname NAS-X
     nano /etc/hosts
+
+dpkg-reconfigure openssh-server
+https://askubuntu.com/questions/682070/how-to-restore-ssh-config-file-in-etc-ssh
+
+
+Also look at
+
+https://wiki.debian.org/Hostname#OpenSSH_server
+
+
 
 ### Configure the local timezone and time
 By default the system will be set to the North America/Pacific timezone.
@@ -153,8 +173,11 @@ Optional but suggested. Set up the system to sync to an NTP server for the time.
     timedatectl set-ntp yes
     
 ### Make sure the swap partition is working
-By default the swap partition is configured to work on a 64K page system
-so it may need to be modified.
+By default the swap partition on a Seagate Central is formatted to work with the
+native 64K page kernel. This is not compatible with the 4K page kernel used in 
+Debian. 
+
+To reconfigure the swap space issue the following commands.
 
     /sbin/mkswap /dev/sda6
     swapon /dev/sda6
@@ -168,6 +191,13 @@ per the following example
     Swap:        1048572           0     1048572
     
 ### Format and mount the large Data partition
+
+
+**Warning: As stated in the introduction of this document, this step will delete
+all files and data from the large Data partition.**
+
+Note that executing these commands will delete all files currently on the
+Data partition. If you have 
 
 format
 
@@ -207,11 +237,14 @@ Reboot into other system and peform the same customizations.
 
 
 
-OPTIONAL : Optimize disk layout.
+## Notes and Discussion
+This section contains some ideas and notes that interested readers
+might like to peruse.
 
-One problem with using the native Seagate Central disk layout is that the root
-partition, which stores most of the Linux operating system's files, is not
-very big (only 1GB).
+### Optimize disk layout.
+One problem with using the native Seagate Central native disk layout is that it is
+not optimized for Debian. Most notably, the root partition, which stores most of
+the Linux operating system's files, is not very big (only 1GB).
 
 Below is a table showing the native disk partition layout for the Seagate Central.
 The Seagate Central has a primary and secondary boot and root partition that can
@@ -219,7 +252,7 @@ be switched to if the working partition becomes unbootable. It also has a "Confi
 and "Update" partition that are used for Seagate Central specific purposes
 that don't need to be present when running Debian.
 
-### Native Segate Central disk layout
+#### Native Segate Central disk layout
 
 | Partition       |  Size  |  Type   |         Label        | Description
 |-----------------|--------|---------|----------------------|-------------------------------|
@@ -233,10 +266,10 @@ that don't need to be present when running Debian.
 | sda8            |  ...   |  lvm    |  Data                |  Large Data Partition         |
 ---------------------------------------------------------------------------------------------
 
-It is possible to modify this layout to grant the root partition up to 3GiB by 
-removing some of the Seagate Central specific partitions as follows.
+Expert users might be inclined to modify this layout to grant the root partition more space
+(say 3GB) by removing some of the Seagate Central specific partitions as follows.
 
-### Optimized Debian layout
+#### Alternative Optimized Debian layout
 
 | Partition       |  Size  |  Type   |         Label        | Description
 |-----------------|--------|---------|----------------------|-------------------------------|
@@ -248,36 +281,67 @@ removing some of the Seagate Central specific partitions as follows.
 | sda8            |  ...   |  lvm    |  Data                |  Large Data Partition         |
 ---------------------------------------------------------------------------------------------
 
+A "basic/emergency" version of Debian could be installed on Kernel_1 / Root_file_System_1 and 
+the main primary version could be installed on Kernel_2 / Root_File_System_2. If the primary
+version of Debian became unbootable then after 4 failed bootup attempts the system should
+automatically switch to the "emergency" partitions and load them.
+
 Another approach is to remove the hard drive from the unit and use the
 procedure at 
 
 https://github.com/bertofurth/Seagate-Central-Tips/blob/main/Unbrick-Replace-Reset-Hard-Drive.md
 
-to repartition the drive so that the partitions are sized appropriately. I would
-suggest 
+to repartition the drive so that the partitions are sized appropriately.
 
-sda1 :  50M
+### Webmin
+I tried installing the "webmin" web based management tool on Debian running on the
+Seagate Central. It works but very, very slowly and not 100% reliably.
 
+Here are some brief notes on installing as per the documentation at https://www.webmin.com/deb.html
 
-End layout
+As root, install the required packages:
 
+    apt-get install wget perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python unzip shared-mime-info 
 
+Add this line to /etc/apt/sources.list
+    
+    deb https://download.webmin.com/download/repository sarge contrib
 
+To enable ipv6 for webmin also install the following package
 
+    apt-get libsocket6-perl
 
+Install webmin
 
+    wget https://download.webmin.com/jcameron-key.asc
+    apt-key add jcameron-key.asc
+    apt-get install apt-transport-https
+    apt-get update
+    apt-get install webmin
 
-Get rid of "config" and "update" partitions.
+Modify the "TimeoutSec" line in /lib/systemd/system/webmin.service to
 
+    TimeoutSec=30s
 
+Reboot the unit and login via the webmin web interface. Let me know
+if you manage to somehow tweak webmin to be less resource hungry.
 
-Notes
+### Performance
+Debian on Seagate Central will perform less efficiently than the native Seagate Central firmware,
+however it is obviously far more versatile.
 
-Note about webmin working but not particularly quickly
+I would suggest only installing and running the bare minimum of daemons and services to
+save CPU and memory resources.
 
-Note about performance being slower than native Seagate Central but obviously
-it's more versatile
+Finally, I have had some problems where occasionally the unit will fail under heavy load with
+"Segmentation Fault" style error messages. I have come to the conclusion that these are likely
+due to the CPU overheating. It seems that when the Seagate Central was manufactured, the
+heat dissipation characterstics of the unit were designed assuming that it would not be
+under sustained heavy CPU load.
 
-Try loading packages required to compile linux and see if you can get it to work. 
+Unfortunatly the only remedy I can offer, other than manually modifying your unit to include
+a better heat sink, is to recompile the Linux kernel to NOT use SMP mode. That is, by 
+forcing the unit to use only one of the two CPU cores the unit does not seem to generate as
+much heat and hence becomes more reliable but obviously it will run more slowly.
 
 
