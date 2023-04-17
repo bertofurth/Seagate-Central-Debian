@@ -749,7 +749,7 @@ Note that the values you see might be slighty different.
     bootdelay=5
     . . . .
     . . . .
-    num_boot_tries=0
+    
     
 ### Create Seagate Central specific boot scripts    
 Next, we need to create some boot scripts that perform Seagate Central specific
