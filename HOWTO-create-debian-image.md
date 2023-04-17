@@ -864,8 +864,9 @@ finding the unit's new IP address.
 
 ## Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
-it comes up as before. Log back in as the root user to complete the
-procedure.
+it comes up as before with no significant errors in the console
+bootup logs. Once the loging prompt reappears, log back in as the root
+user.
 
 ## Clean cached files and power off the Seagate Central 
 After confirming that the unit has succesfully rebooted, run the following 
