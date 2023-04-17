@@ -1,5 +1,3 @@
-**WORK IN PROGRESS. NOT FINISHED**
-
 # Debian for Seagate Central NAS
 This is a procedure for installing a basic Debian Linux system 
 on a Seagate Central NAS.
@@ -78,7 +76,7 @@ Note that this page will **never** refresh because the unit will no longer
 be running a Seagate Central native operating system. Instead, wait for about
 two minutes for the status LED on the unit to transition from flashing red,
 then solid amber, then flashing green then finally solid green which indicates
-that the unit has succesfully rebooted. 
+that the unit has successfully rebooted. 
 
 ### Establish an ssh connection to the unit
 After the unit has rebooted you will need to establish an ssh connection
@@ -207,7 +205,7 @@ Change this as per the following example using your own timezone.
     timedatectl set-ntp yes
     
 #### Make sure the swap partition is working
-By default the swap partition on a Seagate Central is formatted to work with the
+By default, the swap partition on a Seagate Central is formatted to work with the
 native 64K page kernel. This is not compatible with the 4K page kernel used in 
 Debian. 
 
@@ -224,7 +222,7 @@ per the following example
     Mem:          247108       24972       91924         940      130212      213252
     Swap:        1048572           0     1048572
     
-### Optional but reccomended - Format and mount the large Data partition
+### Optional but recommended - Format and mount the large Data partition
 **Warning: As stated in the introduction of this document, this step will delete
 all files and data from the large Data partition.**
 
@@ -250,7 +248,7 @@ large space at the end of the drive into multiple partitions. Perhaps
 one for Data, another for home directories and so on.
 
 ### Optional - Install Debian on backup partitions
-At this stage of the process the active Seagate Central parititons have
+At this stage of the process the active Seagate Central partitions have
 Debian installed but the backup partitions have the native Seagate Central
 firmware installed.
 
@@ -282,18 +280,18 @@ secondary partitions. Issue the following commands to do so.
      mount /dev/sda1 /tmp/sda1
      mount /dev/sda2 /tmp/sda2
      
-     # Copy the kernel image from the primary boot partititon
+     # Copy the kernel image from the primary boot partition
      # to the secondary boot partition
      cp /tmp/sda1/uImage /tmp/sda2/uImage
 
-     # Format the secondary root partititon and mount it
+     # Format the secondary root partition and mount it
      /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,large_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda4
      mount /dev/sda4 /tmp/sda4
      
      # Install squashfs-tools package
      apt-get -y install squashfs-tools
      
-     # Transfer the basic operating system to the secondary root partititon
+     # Transfer the basic operating system to the secondary root partition
      unsquashfs -p 1 -f -d /tmp/sda4/ /rfs.squashfs
      
      # Copy the /etc configuration directory of the working system 
@@ -313,18 +311,18 @@ primary partitions. Issue the following commands to do so.
      mount /dev/sda1 /tmp/sda1
      mount /dev/sda2 /tmp/sda2
      
-     # Copy the kernel image from the secondary boot partititon
+     # Copy the kernel image from the secondary boot partition
      # to the primary boot partition
      cp /tmp/sda2/uImage /tmp/sda1/uImage
 
-     # Format the primary root partititon and mount it
+     # Format the primary root partition and mount it
      /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,large_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda3
      mount /dev/sda3 /tmp/sda3
      
      # Install squashfs-tools package
      apt-get -y install squashfs-tools
      
-     # Transfer the basic operating system to the primary root partititon
+     # Transfer the basic operating system to the primary root partition
      unsquashfs -p 1 -f -d /tmp/sda3/ /rfs.squashfs
      
      # Copy the /etc configuration directory of the working system 
@@ -357,7 +355,7 @@ be switched to if the working partition becomes unbootable. It also has a "Confi
 and "Update" partition that are used for Seagate Central specific purposes
 that don't need to be present when running Debian.
 
-#### Native Segate Central disk layout
+#### Native Seagate Central disk layout
 
 | Partition       |  Size  |  Type   |         Label        | Description
 |-----------------|--------|---------|----------------------|-------------------------------|
@@ -454,7 +452,7 @@ assume that the system is using a standard 4K page size.
 I have had some problems where occasionally the unit will fail under heavy load with
 "Segmentation Fault" style error messages. I have come to the conclusion that these are likely
 due to the CPU overheating. It seems that when the Seagate Central was manufactured, the
-heat dissipation characterstics of the unit were designed assuming that it would not be
+heat dissipation characteristics of the unit were designed assuming that it would not be
 under sustained heavy CPU load.
 
 Unfortunatly the only remedy I can offer, other than manually modifying your unit to include
@@ -470,7 +468,7 @@ the unit. That is, disconnect the power supply and then reconnect it.
 There have been reports that sometimes after an upgrade the unit needs to have the power supply
 disconnected then reconnected for the Ethernet to work.
 
-If this does not help then it may be neccessary to revert back to the original Seagate
+If this does not help then it may be necessary to revert back to the original Seagate
 Central firmware which should be on the backup partitions of the unit. This can be done
 by following the steps below
 
