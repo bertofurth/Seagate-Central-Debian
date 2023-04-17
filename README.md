@@ -287,8 +287,7 @@ secondary partitions. Issue the following commands to do so.
      cp /tmp/sda1/uImage /tmp/sda2/uImage
 
      # Format the secondary root partititon and mount it
-     /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,lar
-ge_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda4
+     /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,large_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda4
      mount /dev/sda4 /tmp/sda4
      
      # Install squashfs-tools package
@@ -319,8 +318,7 @@ primary partitions. Issue the following commands to do so.
      cp /tmp/sda2/uImage /tmp/sda1/uImage
 
      # Format the primary root partititon and mount it
-     /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,lar
-ge_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda3
+     /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,large_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda3
      mount /dev/sda3 /tmp/sda3
      
      # Install squashfs-tools package
