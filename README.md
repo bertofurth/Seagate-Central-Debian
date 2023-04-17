@@ -399,21 +399,23 @@ to repartition the drive so that the partitions are sized appropriately.
 
 ### Webmin
 I tried installing the "webmin" web based management tool on Debian running on the
-Seagate Central. It works but very, very slowly and not 100% reliably.
+Seagate Central. It works but very, very slowly and not 100% reliably. If you're 
+going to install something like this then I'd strongly suggest repartitioning
+the drive so that the root partition is much bigger than the default of 1GB.
 
 Here are some brief notes on installing as per the documentation at https://www.webmin.com/deb.html
 
 As root, install the required packages:
 
-    apt-get install wget perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python unzip shared-mime-info 
-
-Add this line to /etc/apt/sources.list
-    
-    deb https://download.webmin.com/download/repository sarge contrib
+    apt-get install wget perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python unzip shared-mime-info gnupg
 
 To enable ipv6 for webmin also install the following package
 
-    apt-get libsocket6-perl
+    apt-get install libsocket6-perl
+    
+Add this line to /etc/apt/sources.list
+    
+    deb https://download.webmin.com/download/repository sarge contrib
 
 Install webmin
 
@@ -424,12 +426,17 @@ Install webmin
     apt-get install webmin
 
 Since it takes so long for the slow Seagate Central to activate webmin, we need
-to modify the "TimeoutSec" line in /lib/systemd/system/webmin.service as follows
+to modify the "TimeoutSec=15s" line in /lib/systemd/system/webmin.service to wait
+for 30 seconds instead as follows
 
     TimeoutSec=30s
 
-Reboot the unit and login via the webmin web interface. Let me know
-if you manage to somehow tweak webmin to be less resource hungry or to 
+Reboot the unit and login via the webmin web interface on port 10000 using URL
+similar to http://192.168.1.99:10000 . If your browser complains about invalid
+security then just ignore that for the moment. When prompted login using the root
+username and password.
+
+Let me know if you manage to somehow tweak webmin to be less resource hungry or to 
 work better on the Seagate Central.
 
 ### Performance 
@@ -456,9 +463,13 @@ heat dissipation characteristics of the unit were designed assuming that it woul
 under sustained heavy CPU load.
 
 Unfortunatly the only remedy I can offer, other than manually modifying your unit to include
-a better heat sink, is to recompile the Linux kernel to NOT use SMP mode. That is, by 
+a better heat sink, is to use a Linux kernel that does NOT use smp. That is, by 
 forcing the unit to use only one of the two CPU cores the unit does not seem to generate as
 much heat and hence becomes more reliable but obviously it will run more slowly.
+
+In the "releases" section of the Seagate-Central-Slot-In-v5.x-Kernel project there should
+be a kernel image called uImage.4k.nosmp that can be installed on the unit that serves
+this purpose. Simply copy it to the boot partition as "uImage" and reboot.
 
 ### Revert to original firmware
 The most common issue that may occur after an upgrade is that the unit no longer has network
