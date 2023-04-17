@@ -57,7 +57,11 @@ To start upgrading the unit navigate to the "Settings" tab, open the
 Next to the "Install From File" option, click on the "Choose File" button
 and in the file selection dialog, select the Debian for Seagate Central 
 firmware update image that you obtained in the last step. Next, click on
-the "Install" button.
+the "Install" button. 
+
+Click OK a the warning saying "Your Seagate Central must be on for the 
+duration of the update. This can take from 5 to 10 minutes. Do you want 
+to continue?"
 
 After a few minutes, at the point where the image has been uploaded to the
 unit the web page will display a message
@@ -67,9 +71,10 @@ unit the web page will display a message
     The device is rebooting after completing system updates and changes. Wait until the page refreshes and the Seagate Central application appears.
 
 Note that this page will **never** refresh because the unit will no longer 
-be running a Seagate Central native operating system. Instead, wait for the
-status LED on the unit to come back to solid green to indicate that it has
-succesfully rebooted. 
+be running a Seagate Central native operating system. Instead, wait for about
+two minutes for the status LED on the unit to transition from flashing red,
+then solid amber, then flashing green then finally solid green which indicates
+that the unit has succesfully rebooted. 
 
 ### Establish an ssh connection to the unit
 After the unit has rebooted you will need to establish an ssh connection
@@ -77,7 +82,19 @@ to the IP address of the unit. The default username when using the firmware
 images published in the Releases section of this project is "sc" and the
 password is "SCdebian2022". You should then elevate to the root user
 by issuing the "su" command using the default root password which is
-also "SCdebian2022".
+also "SCdebian2022" as per the following example.
+
+    Linux SC-debian 5.15.86-sc #2 SMP Fri Jan 6 22:43:06 AEDT 2023 armv6l
+
+    The programs included with the Debian GNU/Linux system are free software;
+    the exact distribution terms for each program are described in the
+    individual files in /usr/share/doc/*/copyright.
+
+    Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+    permitted by applicable law.
+    sc@SC-debian:~$ su
+    Password: SCdebian2022
+    root@SC-debian:/home/sc#
 
 In most cases the unit should come back up with the same DHCP assigned IP address
 it had while running Seagate Central native firmware. If this is the case and you've 
@@ -342,14 +359,24 @@ Reboot the unit and login via the webmin web interface. Let me know
 if you manage to somehow tweak webmin to be less resource hungry or to 
 work better on the Seagate Central.
 
-### Performance
+### Performance 
 Debian on Seagate Central will perform less efficiently than the native Seagate 
 Central firmware, however it is obviously far more versatile.
 
 I would suggest only installing and running the bare minimum of daemons and services to
 save CPU and memory resources.
 
-Finally, I have had some problems where occasionally the unit will fail under heavy load with
+The main reason why Debian will perform less efficiently than native firmware
+is because the native firmware used a 64K page size. This makes disk
+operations quicker at the expense of system memory efficiency.
+
+It might be possible to load a 64K page size kernel with the Debian distribution 
+but my brief experience shows that the Seagate Central simply doesn't have 
+enough memory for it to work properly. In addition most Debian stock tools
+assume that the system is using a standard 4K page size.
+
+### CPU Cooling issues and random Segmentation Faults
+I have had some problems where occasionally the unit will fail under heavy load with
 "Segmentation Fault" style error messages. I have come to the conclusion that these are likely
 due to the CPU overheating. It seems that when the Seagate Central was manufactured, the
 heat dissipation characterstics of the unit were designed assuming that it would not be
