@@ -23,8 +23,12 @@ a web management interface are installed. Installing these types of
 services and other customizations are left to the user. 
 
 ## TLDNR
-TODO
-
+* Obtain the Debian upgrade image
+* Install the Debian image using the Seagate Central Web Management page
+* Establish an ssh connection to the unit
+* Perform system customization (passwords, hostname, timezone etc)
+* Format and mount the large Data partition
+* Cleanup
 
 ## Procedure
 ### Obtain the Debian upgrade image
@@ -174,7 +178,7 @@ This can be done with the following commands issued as root
 You will need to log out and log back in to your ssh session before
 you see the hostname changed in your command prompt.
 
-### Configure the local timezone and time
+#### Configure the local timezone and time
 By default the system will be set to the North America/Pacific timezone.
 Change this as per the following example using your own timezone.
 
@@ -202,7 +206,7 @@ Change this as per the following example using your own timezone.
     apt-get -y install systemd-timesyncd
     timedatectl set-ntp yes
     
-### Make sure the swap partition is working
+#### Make sure the swap partition is working
 By default the swap partition on a Seagate Central is formatted to work with the
 native 64K page kernel. This is not compatible with the 4K page kernel used in 
 Debian. 
@@ -220,7 +224,7 @@ per the following example
     Mem:          247108       24972       91924         940      130212      213252
     Swap:        1048572           0     1048572
     
-### Format and mount the large Data partition
+### Optional but reccomended - Format and mount the large Data partition
 **Warning: As stated in the introduction of this document, this step will delete
 all files and data from the large Data partition.**
 
