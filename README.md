@@ -535,14 +535,17 @@ Install webmin
     apt-get install webmin
 
 Since it takes so long for the slow Seagate Central to activate webmin, we need
-to modify the "TimeoutSec=15s" line in /lib/systemd/system/webmin.service to wait
-for 30 seconds instead as follows
+to modify the "TimeoutSec=15s" line in /lib/systemd/system/webmin.service to say
+"TimeoutSec=30s" instead so that the service has more time to start.
 
-    TimeoutSec=30s
+I would also suggest disabling ssl mode for the web server. This can be done by
+editing /etc/webmin/miniserv.conf and changing "ssl=1" to "ssl=0". Even though 
+it's less secure it's much less strain on the system CPU. If you're using your
+Seagate Central on a public or untrusted network then leave ssl enabled.
 
 Reboot the unit and login via the webmin web interface on port 10000 using URL
 similar to http://192.168.1.99:10000 . If your browser complains about invalid
-security then just ignore that for the moment. When prompted login using the root
+security then just ignore that for the moment. When promptedm login using the root
 username and password.
 
 Let me know if you manage to somehow tweak webmin to be less resource hungry or to 
