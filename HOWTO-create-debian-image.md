@@ -686,7 +686,7 @@ titled "Software selection". You'll be presented with a list packages
 and sofware to install. In order to minimize the size of the 
 installed software, make sure that nothing but the "SSH server" is
 selected. If "Standard System Utilites" or any other options are selected 
-then de-select them. Users can install whatever other software you 
+then de-select them. Users can install whatever other software they 
 like once the system is up and running but the goal here is to keep the
 image as small as possible. You may need to scroll down to deselect
 "Standard Software Utilities".
