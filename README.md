@@ -1,11 +1,5 @@
 **WORK IN PROGRESS. NOT FINISHED**
 
-
-TODO
-
-Make a 4k config file
-
-
 # Debian for Seagate Central NAS
 This is a procedure for installing a basic Debian Linux system 
 on a Seagate Central NAS.
@@ -26,7 +20,7 @@ Note that these instructions only get the unit to the point of having a
 a very basic Debian based Linux operating system with a working ssh
 service. No other services, such as a samba file sharing service or
 a web management interface are installed. Installing these types of
-services and other customizations are left to the user to complete.
+services and other customizations are left to the user. 
 
 ## TLDNR
 TODO
@@ -40,7 +34,8 @@ can be found in the releases section of this project at
 
 https://github.com/bertofurth/Seagate-Central-Debian/releases
 
-The image name will be something like "Debian-for-SC-XXXX-XX-XX.img"
+The image name will be something like 
+"Debian-Bullseye-Seagate-Central-v1.0.img"
 
 As of writing the image will install Debian version 11, "Bullseye".
 
@@ -51,12 +46,18 @@ documented in this project by HOWTO-create-debian-image.md
 Login to the Seagate Central's web based management tool as an admin
 level user.
 
-Navigate to the "Settings" tab, open the "Advanced" folder and
-select "Firmware Update".
+If you don't already know the unit's IP address then take a note of it
+as it will be needed later in the procedure. You can find the unit's IP
+address by navigating to the "Settings" tab, opening the "Advanced" folder
+and selecting "Lan". The unit's IP address should be shown. 
 
-Next to the "Install From File" option, click on the "Chose File" button
-and select the Debian for Seagate Central firmware update image. Next,
-click on the "Install" button.
+To start upgrading the unit navigate to the "Settings" tab, open the
+"Advanced" folder and select "Firmware Update".
+
+Next to the "Install From File" option, click on the "Choose File" button
+and in the file selection dialog, select the Debian for Seagate Central 
+firmware update image that you obtained in the last step. Next, click on
+the "Install" button.
 
 After a few minutes, at the point where the image has been uploaded to the
 unit the web page will display a message
@@ -66,7 +67,7 @@ unit the web page will display a message
     The device is rebooting after completing system updates and changes. Wait until the page refreshes and the Seagate Central application appears.
 
 Note that this page will **never** refresh because the unit will no longer 
-be running a Seagate Central native operating system. Instead wait for the
+be running a Seagate Central native operating system. Instead, wait for the
 status LED on the unit to come back to solid green to indicate that it has
 succesfully rebooted. 
 
@@ -74,21 +75,26 @@ succesfully rebooted.
 After the unit has rebooted you will need to establish an ssh connection
 to the IP address of the unit. The default username when using the firmware
 images published in the Releases section of this project is "sc" and the
-password is "SCdebian2022". The default root password is also "SCdebian2022".
+password is "SCdebian2022". You should then elevate to the root user
+by issuing the "su" command using the default root password which is
+also "SCdebian2022".
 
 In most cases the unit should come back up with the same DHCP assigned IP address
-it had while running Seagate Central native firmware. However, if your Seagate
-Central was configured with a static IP address then the unit will be likely to
-have acquired a different DHCP assigned IP address from the one it used to have.
+it had while running Seagate Central native firmware. If this is the case and you've 
+managed to establish an ssh connection then at this point you can skip forward 
+to the next section. 
+
+If, however, your Seagate Central was configured with a static IP address then
+the unit will be likely to have acquired a different DHCP assigned IP address 
+from the one it used to have.
 
 For this reason you will have to determine the IP address of the new system
 before connecting to it and there isn't a straight forward way to do this.
-
 The easiest way is to use a "network scanner" or "ip scanner" style tool or app
-on a computer connected to the same network as the Seagate Central to find it's
-IP address.
+such as "Advanced IP scanner" or "Angry IP scanner" on a computer connected to
+the same network as the Seagate Central to find it's IP address.
 
-If you have a Linux system then another alternative is to use the Linux "nmap"
+If you have a Linux system then another alternative is to use the "nmap"
 utility to search for hosts on the local network that are offering an ssh service
 on port 22.
 
@@ -114,12 +120,12 @@ to the following and will indicate the IP address of the Seagate Central
 From this output we can determine the IP address of the unit. In the example
 above it is 192.168.1.58.
 
-When you have found the IP address of the unit establish an ssh connection
-using the default username of "sc" and password "SCdebian2022".
+In some rare cases the unit's ethernet interface may not work after rebooting.
+Try power cycling the unit, waiting for the status LED to turn green and then
+trying to connect to the unit again.
 
-After logging in via ssh, elevate to the root user by issuing the "su"
-command and using the default root password "SCdebian2022". All the 
-following commands need to be issued as the root user.
+If the unit becomes completely unreachable then go to the section at the end
+of this document titled "Revert to original firmware".
 
 ### Customize the system
 #### Change the root and "sc" user passwords
@@ -148,8 +154,8 @@ This can be done with the following commands issued as root
     sed -i 's/SC-debian/NewHostName/g' /etc/hosts
     sed -i 's/SC-debian/NewHostName/g' /etc/ssh/*.pub
 
-
-
+You will need to log out and log back in to your ssh session before
+you see the hostname changed in your command prompt.
 
 ### Configure the local timezone and time
 By default the system will be set to the North America/Pacific timezone.
@@ -172,10 +178,10 @@ Change this as per the following example using your own timezone.
     
     # If necessary set the current time using
     # a date and time style as per this example
-    timedatectl set-time "2022-01-30 10:35:00"
+    timedatectl set-time "2023-03-28 10:35:00"
     
     # Optional but suggested. Set up the system to sync 
-    # to an NTP server for the time.    
+    # to an NTP server for accurate time.    
     apt-get -y install systemd-timesyncd
     timedatectl set-ntp yes
     
@@ -198,36 +204,32 @@ per the following example
     Swap:        1048572           0     1048572
     
 ### Format and mount the large Data partition
-
 **Warning: As stated in the introduction of this document, this step will delete
 all files and data from the large Data partition.**
 
-Note that executing these commands will delete all files currently on the
-Data partition. If you have 
+The Data partition as used by the native Seagate Central firmware makes
+use of a non-standard 64K page size. This means that it cannot be read
+by the Debian system which uses a standard 4K page size.
 
-format
+The Data partition needs to be formatted using a 4K page size with
+the following command.
 
-/sbin/mkfs.ext4 -F -L Data -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,large_file,hug
-e_file,uninit_bg,dir_nlink,extra_isize -m0 /dev/vg1/lv1
+    /sbin/mkfs.ext4 -F -L Data -m0 /dev/vg1/lv1
 
+After the partition has been formatted it can be mounted as /Data by
+creating this directory and adding an appropriate entry to the
+/etc/fstab file as follows
 
-
-
-Maybe just mount as "Data"
-
-Optionally move "home" to this directory
-
-
-    
-
-NOT YET rm /rfs.squashfs
-
-
-
-
-
+    mkdir /Data
+    echo "/dev/vg1/lv1    /Data           auto    errors=remount-ro      0      2" >> /etc/fstab
+    mount /Data
+  
+Another alternative for advanced users might be to repartition the
+large space at the end of the drive into multiple partitions. Perhaps
+one for Data, another for home directories and so on.
 
 ### Optional. Install Debian on backup partitions
+
 
 unsquashfs and then copy /etc directory
 
@@ -243,14 +245,19 @@ Reboot into other system and peform the same customizations.
 
 
 
+NOT YET rm /rfs.squashfs
+
+
+
 ## Notes and Discussion
-This section contains some ideas and notes that interested readers
-might like to peruse.
+This section contains some discussion about advanced topics that are only for
+interested readers. These sections do not need to be followed to get a basic
+system working.
 
 ### Optimize disk layout.
 One problem with using the native Seagate Central native disk layout is that it is
 not optimized for Debian. Most notably, the root partition, which stores most of
-the Linux operating system's files, is not very big (only 1GB).
+the Linux operating system's files, is only 1GB which is not very big.
 
 Below is a table showing the native disk partition layout for the Seagate Central.
 The Seagate Central has a primary and secondary boot and root partition that can
@@ -273,7 +280,8 @@ that don't need to be present when running Debian.
 ---------------------------------------------------------------------------------------------
 
 Expert users might be inclined to modify this layout to grant the root partition more space
-(say 3GB) by removing some of the Seagate Central specific partitions as follows.
+(say 3GB) by removing some of the Seagate Central specific partitions and merging them
+into other partitions as follows.
 
 #### Alternative Optimized Debian layout
 
@@ -325,16 +333,18 @@ Install webmin
     apt-get update
     apt-get install webmin
 
-Modify the "TimeoutSec" line in /lib/systemd/system/webmin.service to
+Since it takes so long for the slow Seagate Central to activate webmin, we need
+to modify the "TimeoutSec" line in /lib/systemd/system/webmin.service as follows
 
     TimeoutSec=30s
 
 Reboot the unit and login via the webmin web interface. Let me know
-if you manage to somehow tweak webmin to be less resource hungry.
+if you manage to somehow tweak webmin to be less resource hungry or to 
+work better on the Seagate Central.
 
 ### Performance
-Debian on Seagate Central will perform less efficiently than the native Seagate Central firmware,
-however it is obviously far more versatile.
+Debian on Seagate Central will perform less efficiently than the native Seagate 
+Central firmware, however it is obviously far more versatile.
 
 I would suggest only installing and running the bare minimum of daemons and services to
 save CPU and memory resources.
@@ -349,5 +359,33 @@ Unfortunatly the only remedy I can offer, other than manually modifying your uni
 a better heat sink, is to recompile the Linux kernel to NOT use SMP mode. That is, by 
 forcing the unit to use only one of the two CPU cores the unit does not seem to generate as
 much heat and hence becomes more reliable but obviously it will run more slowly.
+
+### Revert to original firmware
+The most common issue that may occur after an upgrade is that the unit no longer has network
+connectivity. If this happens then the first thing you should try is manually power cycling 
+the unit. That is, disconnect the power supply and then reconnect it.
+
+There have been reports that sometimes after an upgrade the unit needs to have the power supply
+disconnected then reconnected for the Ethernet to work.
+
+If this does not help then it may be neccessary to revert back to the original Seagate
+Central firmware which should be on the backup partitions of the unit. This can be done
+by following the steps below
+
+1) Power down then power up the Seagate Central by disconnecting and reconnecting the power.
+2) Wait about 30 seconds to a minute for the LED status light on top of the unit to turn from solid amber to flashing green.
+3) As soon as the LED flashes green execute the first 2 steps three more times in a row.
+4) On the 4th bootup let the unit fully boot. It should now load the original version of firmware.
+
+Make sure that step 2 is followed correctly. That is, power off the unit 
+as soon as the LED status light starts flashing green. Don't let it proceed
+to the solid green state.
+
+If after following these steps the unit is still not reachable then it may
+be necessary to perform a complete system recovery as per the procedure
+at
+
+https://github.com/bertofurth/Seagate-Central-Tips/blob/main/Unbrick-Replace-Reset-Hard-Drive.md
+
 
 
