@@ -167,9 +167,9 @@ change it before installing any more tools or utilities.
 
 This can be done with the following commands issued as root
 
-    hostnamectl set-hostname NewHostName
-    sed -i 's/SC-debian/NewHostName/g' /etc/hosts
-    sed -i 's/SC-debian/NewHostName/g' /etc/ssh/*.pub
+    hostnamectl set-hostname YourNewHostName
+    sed -i 's/SC-debian/YourNewHostName/g' /etc/hosts
+    sed -i 's/SC-debian/YourNewHostName/g' /etc/ssh/*.pub
 
 You will need to log out and log back in to your ssh session before
 you see the hostname changed in your command prompt.
@@ -210,7 +210,7 @@ Debian.
 To reconfigure the swap space issue the following commands.
 
     /sbin/mkswap /dev/sda6
-    swapon /dev/sda6
+    /sbin/swapon /dev/sda6
 
 Issue the "free" command to confirm that the swap space is now in use as
 per the following example
@@ -225,8 +225,8 @@ per the following example
 all files and data from the large Data partition.**
 
 The Data partition as used by the native Seagate Central firmware makes
-use of a non-standard 64K page size. This means that it cannot be read
-by the Debian system which uses a standard 4K page size.
+use of a non-standard 64K page size. This means that it cannot be easily 
+accessed by the Debian system which uses a standard 4K page size.
 
 The Data partition needs to be formatted using a 4K page size with
 the following command.
@@ -245,26 +245,99 @@ Another alternative for advanced users might be to repartition the
 large space at the end of the drive into multiple partitions. Perhaps
 one for Data, another for home directories and so on.
 
-### Optional. Install Debian on backup partitions
+### Optional - Install Debian on backup partitions
+At this stage of the process the active Seagate Central parititons have
+Debian installed but the backup partitions have the native Seagate Central
+firmware installed.
+
+If you would like to completely remove the Seagate Central native firmware 
+on the backup partition and replace it with a basic "emergency" Debian system
+then it can be done at this point in the installation process as follows.
+
+First, identify which set of partitions is operational. Issue the following
+command to see whether "kernel1" or "kernel2" is active.
+
+    fw_printenv | grep current_kernel
+
+If you get a result saying "current_kernel=kernel1" then the primary set of
+partitions are active and we need to install debian to the secondary set. If
+you get a result saying "current_kernel=kernel2" then the secondary set
+of partitions are active and we need to install debian to the primary set.
+Follow the set of instructions below that are relevant to your situation
+
+#### current_kernel=kernel1
+In this case we need to copy data from the primary partitions to the
+secondary partitions. Issue the following commands to do so.
+
+     # Create directories to mount the filesystems
+     mkdir /tmp/sda1
+     mkdir /tmp/sda2
+     mkdir /tmp/sda4
+     
+     # Mount the boot partitions
+     mount /dev/sda1 /tmp/sda1
+     mount /dev/sda2 /tmp/sda2
+     
+     # Copy the kernel image from the primary boot partititon
+     # to the secondary boot partition
+     cp /tmp/sda1/uImage /tmp/sda2/uImage
+
+     # Format the secondary root partititon and mount it
+     /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,lar
+ge_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda4
+     mount /dev/sda4 /tmp/sda4
+     
+     # Install squashfs-tools package
+     apt-get -y install squashfs-tools
+     
+     # Transfer the basic operating system to the secondary root partititon
+     unsquashfs -p 1 -f -d /tmp/sda4/ /rfs.squashfs
+     
+     # Copy the /etc configuration directory of the working system 
+     # to the backup system.
+     cp -r /etc/* /tmp/sda4/etc/
+
+#### current_kernel=kernel2
+In this case we need to copy data from the secondary partitions to the
+primary partitions. Issue the following commands to do so.
+
+     # Create directories to mount the filesystems
+     mkdir /tmp/sda1
+     mkdir /tmp/sda2
+     mkdir /tmp/sda3
+     
+     # Mount the boot partitions
+     mount /dev/sda1 /tmp/sda1
+     mount /dev/sda2 /tmp/sda2
+     
+     # Copy the kernel image from the secondary boot partititon
+     # to the primary boot partition
+     cp /tmp/sda2/uImage /tmp/sda1/uImage
+
+     # Format the primary root partititon and mount it
+     /sbin/mkfs.ext4 -F -L Root_File_System -O none,has_journal,ext_attr,resize_inode,dir_index,filetype,extent,flex_bg,sparse_super,lar
+ge_file,huge_file,uninit_bg,dir_nlink,extra_isize /dev/sda3
+     mount /dev/sda3 /tmp/sda3
+     
+     # Install squashfs-tools package
+     apt-get -y install squashfs-tools
+     
+     # Transfer the basic operating system to the primary root partititon
+     unsquashfs -p 1 -f -d /tmp/sda3/ /rfs.squashfs
+     
+     # Copy the /etc configuration directory of the working system 
+     # to the backup system.
+     cp -r /etc/* /tmp/sda3/etc/
 
 
-unsquashfs and then copy /etc directory
+### Cleanup
+After initial system setup is complete then the installation files left
+over from the Seagate Central upgrade process can be removed with
+the following commands
 
-
-
-Before doing any customization need to install debian to the alternate partitions.
-
-Use 
-
-unsquashfs -d $BASE/squashfs-root -n $BASE/rfs.squashfs 
-
-Reboot into other system and peform the same customizations.
-
-
-
-NOT YET rm /rfs.squashfs
-
-
+    rm /rfs.squashfs
+    
+At this point the system is ready for customization.
 
 ## Notes and Discussion
 This section contains some discussion about advanced topics that are only for
