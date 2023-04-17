@@ -322,7 +322,8 @@ The kernel image must be copied to the relevant partition using the name "uImage
 as to overwrite the native "uImage" file on that partition. The uInitrd image name
 can be anything, but you must take a note of the name.
 
-The following shows an example of how the files might be transferred.
+The following shows an example session on the Seagate Central of how the files might
+be transferred to the boot partition. (N.B. You must be logged in as root)
 
     root@NAS-X:/home/admin# mount /dev/sda1 /mnt/sda1
     root@NAS-X:/home/admin# ls -l /mnt/sda1
