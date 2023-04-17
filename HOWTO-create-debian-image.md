@@ -91,8 +91,8 @@ board powered on for short bursts of time because the CPU will not be connected
 to it's heatsink.
 
 Once you've confirmed that the serial console is working, reassemble the unit
-to the point where you install the hard drive. There's no need to put the plastic 
-cover back on for the moment because later in the procedure the hard drive will
+and install the hard drive but there's no need to put the plastic cover back 
+on for the moment because later in the procedure the hard drive will
 need to be removed again.
 
 ### Download and expand uInitrd
