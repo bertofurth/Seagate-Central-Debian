@@ -558,14 +558,17 @@ Central firmware, however it is obviously far more versatile.
 I would suggest only installing and running the bare minimum of daemons and services to
 save CPU and memory resources.
 
-The main reason why Debian will perform less efficiently than native firmware
-is because the native firmware used a 64K page size. This makes disk
+The main reason why Debian will perform less efficiently as a file server than
+native firmware is because the native firmware used a 64K page size. This makes disk
 operations quicker at the expense of system memory efficiency.
 
 It might be possible to load a 64K page size kernel with the Debian distribution 
 but my brief experience shows that the Seagate Central simply doesn't have 
 enough memory for it to work properly. In addition most Debian stock tools
 assume that the system is using a standard 4K page size.
+
+As a benchmark I managed to recompile the Linux kernel for Seagate Central
+on a Seagate Central running Debian. It took about 8 hours.
 
 ### CPU Cooling issues and random Segmentation Faults
 I have had some problems where occasionally the unit will fail under heavy load with
