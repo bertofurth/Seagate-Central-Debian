@@ -202,8 +202,8 @@ If the output is
 then you have a good version of "anna" and can move past the steps labelled
 with "(old anna)".
 
-As of the time of writing (April 2023) there are no versions official versions
-of the Debian installation uInitrd image with an appropriate version of "anna"
+As of the time of writing (April 2023) there are no official versions of the
+Debian installation uInitrd image with an appropriate version of "anna"
 so you will probably have to proceed with the steps below that are labeled 
 with "(old anna)".
 
