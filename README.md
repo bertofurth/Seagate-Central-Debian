@@ -381,14 +381,123 @@ into other partitions as follows.
 | sda2            |  50MB  |  ext2   |  Kernel_2            |  Primary Kernel               |
 | sda3            |  1GB   |  ext4   |  Root_File_System_1  |  Emergency Root File System   |
 | sda4            |  3GB   |  ext4   |  Root_File_System_2  |  Primary Root File System     |
-| sda5            |  1GB   |  swap   |  Swap                |  Linux Swap                   |
-| sda6            |  ...   |  lvm    |  Data                |  Large Data Partition         |
+| sda6            |  1GB   |  swap   |  Swap                |  Linux Swap                   |
+| sda8            |  ...   |  lvm    |  Data                |  Large Data Partition         |
 ---------------------------------------------------------------------------------------------
 
 A "basic/emergency" version of Debian could be installed on Kernel_1 / Root_file_System_1 and 
 the main primary version could be installed on Kernel_2 / Root_File_System_2. If the primary
 version of Debian became unbootable then after 4 failed bootup attempts the system should
-automatically switch to the "emergency" partitions and load them.
+automatically switch to the "emergency" partitions and load them. 
+
+Here is a sample command session on the Seagate Central running Debian where the above
+optimized partitioning system could be constructed starting with the default Seagate 
+Central. We delete partitions 4 through 6 and then reconstruct them.
+
+    root@SC-debian:~# /sbin/swapon -s
+    Filename                                Type            Size    Used    Priority
+    /dev/sda6                               partition       1048572 0       -2
+    root@SC-debian:~# /sbin/swapoff /dev/sda6
+    root@SC-debian:~# /sbin/fdisk /dev/sda
+
+    Welcome to fdisk (util-linux 2.36.1).
+    Changes will remain in memory only, until you decide to write them.
+    Be careful before using the write command.
+
+
+    Command (m for help): p
+    Disk /dev/sda: 3.64 TiB, 4000787030016 bytes, 7814037168 sectors
+    Disk model: ST4000DM000-1F21
+    Units: sectors of 1 * 512 = 512 bytes
+    Sector size (logical/physical): 512 bytes / 4096 bytes
+    I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+    Disklabel type: gpt
+    Disk identifier: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+    Device        Start        End    Sectors  Size Type
+    /dev/sda1      2048      43007      40960   20M Microsoft basic data
+    /dev/sda2     43008      83967      40960   20M Microsoft basic data
+    /dev/sda3     83968    2181119    2097152    1G Microsoft basic data
+    /dev/sda4   2181120    4278271    2097152    1G Microsoft basic data
+    /dev/sda5   4278272    6375423    2097152    1G Microsoft basic data
+    /dev/sda6   6375424    8472575    2097152    1G Linux swap
+    /dev/sda7   8472576   10569727    2097152    1G Microsoft basic data
+    /dev/sda8  10569728 7814037134 7803467407  3.6T Linux LVM
+
+    Command (m for help): d
+    Partition number (1-8, default 8): 4
+
+    Partition 4 has been deleted.
+
+    Command (m for help): d
+    Partition number (1-3,5-8, default 8): 5
+
+    Partition 5 has been deleted.
+
+    Command (m for help): d
+    Partition number (1-3,6-8, default 8): 6
+
+    Partition 6 has been deleted.
+
+    Command (m for help): d
+    Partition number (1-3,7,8, default 8): 7
+
+    Partition 7 has been deleted.
+
+    Command (m for help): n
+    Partition number (4-7,9-128, default 4): 4
+    First sector (2181120-10569727, default 2181120): 2181120
+    Last sector, +/-sectors or +/-size{K,M,G,T,P} (2181120-10569727, default 10569727): 8472575
+
+    Created a new partition 4 of type 'Linux filesystem' and of size 3 GiB.
+    Partition #4 contains a ext4 signature.
+
+    Do you want to remove the signature? [Y]es/[N]o: N
+
+    Command (m for help): n
+    Partition number (5-7,9-128, default 5): 6
+    First sector (8472576-10569727, default 8472576): 8472576
+    Last sector, +/-sectors or +/-size{K,M,G,T,P} (8472576-10569727, default 10569727): 10569727
+
+    Created a new partition 6 of type 'Linux filesystem' and of size 1 GiB.
+    Partition #6 contains a ext4 signature.
+
+    Do you want to remove the signature? [Y]es/[N]o: Y
+
+    The signature will be removed by a write command.
+
+    Command (m for help): w
+    The partition table has been altered.
+    Syncing disks.
+
+    root@SC-debian:~# /sbin/mkswap /dev/sda6
+    Setting up swapspace version 1, size = 1024 MiB (1073737728 bytes)
+    no label, UUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+    root@SC-debian:~# /sbin/swapon /dev/sda6
+    root@SC-debian:~# /sbin/resize2fs /dev/sda4
+    resize2fs 1.46.2 (28-Feb-2021)
+    Filesystem at /dev/sda4 is mounted on /; on-line resizing required
+    old_desc_blocks = 1, new_desc_blocks = 1
+    The filesystem on /dev/sda4 is now 786432 (4k) blocks long.
+
+    root@SC-debian:~# /sbin/fdisk -l /dev/sda
+    Disk /dev/sda: 3.64 TiB, 4000787030016 bytes, 7814037168 sectors
+    Disk model: ST4000DM000-1F21
+    Units: sectors of 1 * 512 = 512 bytes
+    Sector size (logical/physical): 512 bytes / 4096 bytes
+    I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+    Disklabel type: gpt
+    Disk identifier: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+    Device        Start        End    Sectors  Size Type
+    /dev/sda1      2048      43007      40960   20M Microsoft basic data
+    /dev/sda2     43008      83967      40960   20M Microsoft basic data
+    /dev/sda3     83968    2181119    2097152    1G Microsoft basic data
+    /dev/sda4   2181120    8472575    6291456    3G Linux filesystem
+    /dev/sda6   8472576   10569727    2097152    1G Linux filesystem
+    /dev/sda8  10569728 7814037134 7803467407  3.6T Linux LVM
+
 
 Another approach is to remove the hard drive from the unit and use the
 procedure at 
