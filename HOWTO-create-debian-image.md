@@ -535,11 +535,10 @@ process and some suggested answers.
 
 At this point you can elect to ssh into the unit using the indicated IP address, 
 or you can select "Continue" to proceed with installation using the serial console.
-I'd suggest opening an ssh session while at the same time moving to the log 
-screen in the serial console to monitor for serious errors. You can move
-between GNU screen windows by issuing the keystroke sequence "CTRL-A 4" 
-to select window "4" which is the log screen.
-
+I'd suggest just continuing to use the serial console as this saves memory, but using
+an ssh session should be fine. You can move between GNU screen windows by issuing the
+keystroke sequence "CTRL-A SPACE". to get access to a shell or the logs.
+    
 If you wish to ssh into the unit then use username "installer" with password 
 "SCdebian2022" (as configured above)
 
