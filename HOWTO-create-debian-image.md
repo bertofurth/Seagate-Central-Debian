@@ -1,25 +1,38 @@
 # HOWTO Create Minimal Debian Image
-This is a very brief overview of how the Debian installation image was
-created. There is no need for anyone to perform this procedure because 
-prebuilt Seagate Central Debian installation images are made available in
-the releases section of this project. This procedure is documented
-here for completeness sake in case someone wants to perform the
-process themselves.
+This a procedure detailing how the Debian installation image for
+Seagate Central was created. There is no need for anyone to perform this
+procedure because prebuilt Seagate Central Debian installation images
+are made available in the releases section of this project. This
+procedure is documented here for the sake of completeness and openness 
+in case someone wants to perform the process themselves.
 
 This procedure should only be performed by someone who has a relatively
 good understanding of what's happening, is fairly familiar with the
 Linux installation process and is fairly familiar with u-boot and the
 Linux bootup process on 32 bit "armel" style platforms. For this reason
-the intricate details of how to perform each step is not included
+the step by step details of how to perform every step is not included
 because it's assumed that anyone with the required level of skill to
-perform this procedure will already be familiar with how to perform
-the listed steps.
+perform this procedure will already be familiar with things like how
+to transfer files, how to mount filesystems, how to use a terminal
+emulator and how to use basic Linux commands.
 
 Most importantly, this procedure requires access to the serial console
 of the Seagate Central. This serial console needs to be manually installed
 by physically opening up the unit, soldering wires onto the circuit board,
 and connecting to the unit's serial console. Note that unless this soldering 
 process is done carefully, the unit may be damaged and become inoperative!
+
+## Warning
+**Performing modifications of this kind on the Seagate Central is not without
+risk. Performing the procedure documented in these instructions will likely 
+void any warranty and in rare circumstances may lead to the device becoming
+unusable or damaged.**
+
+**Do not use the products of this project in a mission critical system or in
+a system that people's health or safety depends on.**
+
+**This procedure will overwrite any data or settings on the unit being worked 
+on. Be sure to backup any important data before proceeding.**
 
 ## Prerequisites
 * A working serial console connection to the Seagate Central (Hard)
@@ -94,6 +107,41 @@ Once you've confirmed that the serial console is working, reassemble the unit
 and install the hard drive but there's no need to put the plastic cover back 
 on for the moment because later in the procedure the hard drive will
 need to be removed again.
+
+### Obtain the 4K page Linux kernels for Seagate Central
+Refer to the "Releases" section of the Seagate-Central-Slot-In-v5.x-Kernel project
+to download the latest version of the 4K page size Linux kernels for Seagate Central
+
+https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel/releases
+
+Note that we will be downloading **two** kinds of kernel images. 
+
+uImage.4k - 4k page kernel with smp enabled
+uImage.4k.nosmp - 4k page kernel with smp disabled
+
+As an example let's start working in a base directory on our Debian building
+machine and download these files. Check the URL you are using to download.
+
+    wget https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel/releases/download/v1.6/uImage.4k.nosmp
+    wget https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel/releases/download/v1.6/uImage.4k
+    
+The reason we need to download two kernels is that our tests have shown that
+under some circumstances the unit is not physically capable of using SMP
+mode. This is because of heat dissipation issues. There is more discussion
+about this issue the main README.md file in this project.
+
+We will set up the installation image to install the "nosmp" version of the kernel
+by default and users can chose to manually change to the smp enabled version if
+they want to take the risk of running it.
+
+The Seagate Central natively uses a 64K page size kernel for the sake of disk
+performance however the 4K page size kernel is significantly more memory efficient.
+Since the Debian operating system is more memory hungry than the native Seagate
+Central firmware it is necessary to make this compromise between disk peformance and
+memory efficiency.
+
+If you wish, you can recompile the kernel according to your own desire and
+specifications.
 
 ### Download and expand uInitrd
 The Debian installation uInitrd is a special image that provides a basic
@@ -174,6 +222,9 @@ some commands need to be executed using root privileges.
     drwxr-xr-x  2 root root 4096 Apr  9 01:18 tmp
     drwxr-xr-x  6 root root 4096 Apr  9 01:18 usr
     drwxr-xr-x  6 root root 4096 Apr  9 01:18 var
+    
+    # Change back to the base directory
+    $ cd ..
 
 ### Check the version of "anna" included in uInitrd 
 "anna" is the very simple Debian package installation tool used during 
@@ -186,7 +237,7 @@ the end of this document entitled "Notes about anna" for more details.
 To detect whether an old version of anna is included run the following
 command from the directory where the uInitrd has been expanded to
 
-    $ cat var/lib/dpkg/info/anna.templates | sed -n '/no_kernel_modules/{n;p}'
+    cat new/var/lib/dpkg/info/anna.templates | sed -n '/no_kernel_modules/{n;p}'
 
 If the output of the above command is
 
@@ -215,21 +266,21 @@ On a Debian Linux build machine as the root user we make sure the
 appropriate pre-requisites needed to build anna are installed.
 
     # Make sure an appropriate cross compiler is installed
-    apt install gcc-10-arm-linux-gnueabi
+    sudo apt install gcc-10-arm-linux-gnueabi
     
     # Install u-boot tools for "mkimage" utility
-    apt install u-boot-tools
+    sudo apt install u-boot-tools
     
     # Install the "git" utility to download the source code
-    apt install git
+    sudo apt install git
     
     # Allow this machine to download "armel" style components
-    dpkg --add-architecture armel
-    apt-get update
+    sudo dpkg --add-architecture armel
+    sudo apt-get update
     
-    # Install required libraries
-    apt-get install libdebconfclient0-dev:armel
-    apt-get install libdebian-installer4-dev:armel
+    # Install required development libraries
+    sudo apt-get install libdebconfclient0-dev:armel
+    sudo apt-get install libdebian-installer4-dev:armel
 
 This next part of the procedure can be executed as a normal user on
 the Debian build machine to download and compile anna. Make sure
@@ -238,10 +289,8 @@ that which the expanded uInitrd is in. In this example we place
 the new source code in the "anna" subdirectory of the user's
 home directory.
 
-    # Change back to the user's home directory
-    cd
-    
     # Download the latest "anna" source (v1.84 or later)
+    # to the base directory
     git clone https://salsa.debian.org/installer-team/anna
     cd anna
     
@@ -251,12 +300,18 @@ home directory.
     # Remove debugging symbols to save disk space and memory
     arm-linux-gnueabi-strip anna
     
+    # Confirm that "anna" has been built for ARM
+    file anna
+    
+    # Change back to the base directory
+    cd ..
+    
 These commands should have built the "anna" binary for "armel" platform.
-Confirm this by running the "file" command on "anna" and make sure that
+We confirm this by running the "file" command on "anna" and make sure that
 it has been built for the "ARM" architecture and NOT for the build machine's
-architecture as per the following example.
+architecture (probably x86-64 or aarch64) as per the following example.
 
-    $ file anna
+    # file anna
     anna: ELF 32-bit LSB pie executable, ARM, EABI5 version 1 (SYSV), dynamically 
     linked, interpreter /lib/ld-linux.so.3, for GNU/Linux 3.2.0, stripped
 
@@ -264,18 +319,25 @@ The source tree will also contain the file "debian/anna.templates" that will be
 needed to be added to the uInitrd image that will be created in the next part
 of the process.
 
-### Modify and rebuild uInitrd (old anna)
+### Copy the updated anna into uInitrd (old anna)
 At this stage we need to copy the newly built "anna" tool into the expanded
-uInitrd file system. **These commands must be executed as the root user** from the
-root folder of the expanded uInitrd. Note that these instructions assume that
-the cross compiled "anna" tool is located at ~user/anna
+uInitrd file system. These commands must be executed with root privileges 
+from the base folder. 
 
-    # Copy the anna and data files over the top of the existing ones
-    cp ~user/anna/anna ./bin/anna
-    cp ~user/anna/debian/anna.templates ./var/lib/dpkg/info/anna.templates
+    # Copy "anna" and required data files over the top of the existing ones
+    sudo cp anna/anna new/bin/anna
+    sudo cp anna/debian/anna.templates new/var/lib/dpkg/info/anna.templates
 
+### Modify and rebuild uInitrd (old anna)
+Here we rebuild a uInitrd format file containing the Linux operating
+system. Note that some of these commands must be executed with root
+privileges.
+
+    # Change into the new directory
+    cd new
+    
     # Create a disk image based of the updated contents of this folder 
-    find . | cpio --create --format='newc' > ../newinitrd
+    sudo find . | cpio --create --format='newc' > ../newinitrd
     
     # gzip the disk image
     cd ..
@@ -290,61 +352,62 @@ the cross compiled "anna" tool is located at ~user/anna
 You will now have a "uInitrd.new" file that contains the updated "anna"
 utility. It should be roughly 10MB in size.
 
-### Obtain an updated 4K page Linux kernel for Seagate Central
-Refer to the "Releases" section of the Seagate Central Slot In v5.x Kernel project
-to download the latest version of the 4K page size Linux kernel for Seagate Central
-
-https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel/releases
-
-The image name will normally be uImage.4k
-
-Alternatively use the instructions in the Seagate-Central-Slot-In-v5.x-Kernel project
-to cross compile a kernel for the Seagate Central, but make sure to set the kernel
-configuration to use a 4k page size.
-
-The Seagate Central natively uses a 64K page size kernel for the sake of performance
-however the 4K page size kernel is significantly more memory efficient. Since the
-Debian operating system is more memory hungry than the native Seagate Central firmware
-it is necessary to make this compromise between peformance and memory efficiency.
-
 ### Upload kernel and uInitrd ramdisk to the boot partition on the Seagate Central
-The goal of this section is to copy the new 4K kernel and the new uInitrd to the
+The goal of this section is to copy the new 4K kernels and the new uInitrd to the
 appropriate boot partition on the Seagate Central.
 
-The easiest way to accomlish this is to upload these files to the Seagate Central
-as per any other file, then ssh to the unit and login as root, mount the relevant 
-boot partition and then copy the files onto the partition.
+The easiest way to accomlish this is to upload these files to the Seagate Central,
+then ssh to the unit and login as root, mount the relevant boot partition and
+then copy the files onto that partition.
 
 I would suggest placing the files on the primary/first boot partition, /dev/sda1,
-and to leave the secondary partition, /dev/sdX2, with the native Seagate Central kernel.
+and to leaving the secondary partition, /dev/sdX2, with the native Seagate Central kernel.
+The examples in this document will be given on this basis.
 
-The kernel image must be copied to the relevant partition using the name "uImage" so
-as to overwrite the native "uImage" file on that partition. The uInitrd image name
-can be anything, but you must take a note of the name.
+Note that even though we will be copying both types of kernel images to the unit,
+the kernel image we wish to use during installation must be copied to the relevant
+boot partition using the name "uImage" so as to overwrite the native "uImage" file
+on that partition. In the example below we chose to use the "nosmp" kernel for the
+sake of system stability. The uInitrd image name can be anything, but you must take a
+note of the name. We use "uInitrd.new" in this document.
 
-The following shows an example session on the Seagate Central of how the files might
-be transferred to the boot partition. (N.B. You must be logged in as root)
+The following shows an example session on a Seagate Central that has had the
+relevant files already transferred to it. (N.B. You must be logged in as root)
 
+    # Check that the files have been uploaded to the Seagate Central
+    root@NAS-X:/home/admin# ls -l
+    total 18628
+    -rw-r--r-- 1 admin 1000  4316328 Apr 17 22:15 uImage.4k
+    -rw-r--r-- 1 admin 1000  4125320 Apr 17 22:15 uImage.4k.nosmp
+    -rw-r--r-- 1 admin 1000 10628646 Apr 17 22:15 uInitrd.new
+    
+    # Mount the primary boot partition
     root@NAS-X:/home/admin# mount /dev/sda1 /mnt/sda1
     root@NAS-X:/home/admin# ls -l /mnt/sda1
     total 2945
     drwx------ 2 root root   12288 Apr  9 17:06 lost+found
     -rw-r--r-- 1 root root 2989612 Apr  9 17:11 uImage
-    root@NAS-R:/home/admin# ls -l
-    total 14596
-    -rw-r--r-- 1 admin 1000  4316328 Apr  9 17:59 uImage.4k
-    -rw-r--r-- 1 admin 1000 10625068 Apr  9 17:59 uInitrd.new
-    root@NAS-R:/home/admin# cp uImage.4k /mnt/sda1/uImage
-    root@NAS-R:/home/admin# cp uInitrd.new /mnt/sda1/uInitrd.new
-    root@NAS-R:/home/admin# ls -l /mnt/sda1
-    total 14665
-    drwx------ 2 root root    12288 Apr  9 17:06 lost+found
-    -rw-r--r-- 1 root root  4316328 Apr  9 18:00 uImage
-    -rw-r--r-- 1 root root 10625068 Apr  9 18:01 uInitrd.new
+    
+    # Copy the kernels and uInitrd to the boot partition
+    # Note that here we set the nosmp image to be the
+    # "uImage" that will be booted.
+    root@NAS-X:/home/admin# cp uImage.4k.nosmp /mnt/sda1/uImage
+    root@NAS-X:/home/admin# cp uImage.4k /mnt/sda1/
+    
+    # Copy the uInitrd.new image to the boot partition
+    root@NAS-X:/home/admin# cp uInitrd.new /mnt/sda1/
+    
+    # Check that the images are present on the boot partition
+    root@NAS-X:/home/admin# ls -l /mnt/sda1
+    total 18714
+    drwx------ 2 root root    12288 Apr 17 15:00 lost+found
+    -rw-r--r-- 1 root root  4125320 Apr 17 22:18 uImage
+    -rw-r--r-- 1 root root  4316328 Apr 17 22:18 uImage.4k
+    -rw-r--r-- 1 root root 10628646 Apr 17 22:20 uInitrd.new
 
 ### Prepare to boot the installer via the serial console
-Reboot the unit with the serial console in place. As the unit boots up, information
-similar to the following will appear on the console
+Reboot the unit with the serial console in place (use the "reboot" command).
+As the unit boots up, information similar to the following will appear on the console
 
 
     U-Boot 2008.10-mpcore (Apr  2 2013 - 14:41:52)
@@ -371,18 +434,22 @@ similar to the following will appear on the console
     Restoring RTC
     Hit any key to stop autoboot:  5
 
-When the "Hit any key to stop autoboot" message appears you should hit a key to
-interrupt the boot process and you should see the "u-boot" command prompt which
-in the Seagate Central says "Whitney #".
+When the "Hit any key to stop autoboot" countdown message appears you should 
+hit a key to interrupt the boot process and you should see the "u-boot"
+command prompt which in the Seagate Central says "Whitney #".
+
+If you hit a key too late and the Linux kernel starts booting then just power
+off the unit and try again!
 
 At ths point we need to configure u-boot to make sure to attempt to boot the
-primary partition by using the following commands.
+primary partition by issuing the following commands at the "Whitney#" u-boot
+prompt.
 
     setenv num_boot_tries 0
     setenv current_kernel kernel1
     saveenv
 
-Here is an example of these commands being executed.
+Here is an example showing these commands being executed.
 
     Whitney # setenv num_boot_tries 0
     Whitney # setenv current_kernel kernel1
@@ -410,10 +477,9 @@ Here is an example of these commands being executed.
     0x00008000
 
 ### Boot the Debian installation uInitrd from the serial console
-To load specific uImage and uInitrd from uboot u-boot from the Seagate Central console
-boot the unit and make sure to hit a key within the first few seconds of the
-unit booting up to get to the u-boot prompt as per the following example
- 
+To load the required kernel uImage and Debian installation ramdisk
+from u-boot issue the following commands.
+
     # Paste these commands in one at a time as some of them can take
     # up to 20 seconds to execute
     #
@@ -429,7 +495,8 @@ unit booting up to get to the u-boot prompt as per the following example
     # Boot the kernel and uInitrd
     bootm 0x24000000 0x24A00000
 
-After this you should see the Linux kernel booting as per the following example
+Here is an example output of issuing the above commands. After this you should see
+the Linux kernel booting as per the example
 
     Whitney # setenv bootargs 'console=ttyS0,38400 mem=256M root=/dev/sda3 rw lowmem=1'
     Whitney # scsi init
@@ -471,6 +538,7 @@ After this you should see the Linux kernel booting as per the following example
     Starting kernel ...
 
     Uncompressing Linux...  done, booting the kernel.
+    . . . .
 
 Once the system has booted up you should be greeted with a prompt warning
 you that "Low memory mode" has been engaged. This is expected and necessary
@@ -717,6 +785,47 @@ credentials supplied during installation.
 ## Post Debian installation steps
 A few Seagate Central specific modifications need to be made to the
 Debian system before it can be compiled into an image.
+
+### Copy the kernel images to the root partition
+By default the "nosmp" kernel will be installed however advanced users 
+are given the alternative of installing the higher performing but less
+stable "smp" capable kernel.
+
+Create a special directory in the root of the device containing the
+two kernels with the following commands issued as the root user.
+
+    mkdir /tmp/sda1
+    mount /dev/sda1 /tmp/sda1
+    mkdir /kernel
+    cp /tmp/sda1/uImage /kernel/uImage.4k.nosmp
+    cp /tmp/sda1/uImage.4k /kernel/uImage.4k
+    cat << EOF > /kernel/README.txt
+    This directory contains two Linux kernel images that can be used
+    for Debian on the Seagate Central.
+    
+    uImage.4k.nosmp - A kernel that uses just 1 of the 2 CPU cores on
+    the unit. This kernel is more stable. This is the default kernel.
+    
+    uImage.4k - A kernel that uses both CPU cores via SMP mode. This
+    kernel has higher performance but due to the poor heat dissipation 
+    characteristics of the Seagate Central, it may result in some system
+    instability (Segmentation Faults) if the unit is under sustained 
+    high CPU load. Advanced users may wish to try this kernel.
+    
+    If you wish to change the kernel image the system uses then copy
+    the desired kernel image to the boot partition using the filename 
+    "uImage" to overwrite the old kernel image and reboot the unit to
+    activate the new kernel.
+    
+    Identify the boot partition by running the shell command
+    
+        fw_printenv | grep current_kernel
+    
+    If "current_kernel=kernel1" then the boot partition is /dev/sda1
+    
+    If "current_kernel=kernel2" then the boot partition is /dev/sda2
+    
+    EOF
 
 ### Install extra required Debian packages
 First, we need to install the "u-boot-tools" and "dbus" Debian packages on
