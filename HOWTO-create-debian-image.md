@@ -85,13 +85,13 @@ the unit start to boot up and you should be able to enter the u-boot
 environment. 
 
 If you find that **some** of the characters being transmitted from the
-Segate Central appear as "garbage" then it may be due to crosstalk between
+Seagate Central appear as "garbage" then it may be due to crosstalk between
 the leads. This is where the electrical signal in one lead interferes with 
 the signal in an adjacent lead. This may particularly be the case if you are
 typing at the time when you see the garbage characters.
 
-Try your best to keep the leads as physically seperate as possible. I
-accomplished this by having 4 seperate holes in the bottom of the Seagate
+Try your best to keep the leads as physically separate as possible. I
+accomplished this by having 4 separate holes in the bottom of the Seagate
 Central and feeding a single lead through each hole.
 
 If **all** of the characters coming back from the unit are garbage then you
@@ -137,7 +137,7 @@ they want to take the risk of running it.
 The Seagate Central natively uses a 64K page size kernel for the sake of disk
 performance however the 4K page size kernel is significantly more memory efficient.
 Since the Debian operating system is more memory hungry than the native Seagate
-Central firmware it is necessary to make this compromise between disk peformance and
+Central firmware it is necessary to make this compromise between disk performance and
 memory efficiency.
 
 If you wish, you can recompile the kernel according to your own desire and
@@ -255,7 +255,7 @@ with "(old anna)".
 
 As of the time of writing (April 2023) there are no official versions of the
 Debian installation uInitrd image with an appropriate version of "anna"
-so you will probably have to proceed with the steps below that are labeled 
+so you will probably have to proceed with the steps below that are labelled 
 with "(old anna)".
 
 ### Download "anna" source and recompile "anna" (old anna)
@@ -356,7 +356,7 @@ utility. It should be roughly 10MB in size.
 The goal of this section is to copy the new 4K kernels and the new uInitrd to the
 appropriate boot partition on the Seagate Central.
 
-The easiest way to accomlish this is to upload these files to the Seagate Central,
+The easiest way to accomplish this is to upload these files to the Seagate Central,
 then ssh to the unit and login as root, mount the relevant boot partition and
 then copy the files onto that partition.
 
@@ -407,7 +407,7 @@ relevant files already transferred to it. (N.B. You must be logged in as root)
 
 ### Prepare to boot the installer via the serial console
 Reboot the unit with the serial console in place (use the "reboot" command).
-As the unit boots up, information similar to the following will appear on the console
+As the unit boots up, output similar to the following will appear on the console.
 
 
     U-Boot 2008.10-mpcore (Apr  2 2013 - 14:41:52)
@@ -495,8 +495,8 @@ from u-boot issue the following commands.
     # Boot the kernel and uInitrd
     bootm 0x24000000 0x24A00000
 
-Here is an example output of issuing the above commands. After this you should see
-the Linux kernel booting as per the example
+Here is an example output of issuing the above commands. After issuing these commands
+you should see the Linux kernel booting as per the example below.
 
     Whitney # setenv bootargs 'console=ttyS0,38400 mem=256M root=/dev/sda3 rw lowmem=1'
     Whitney # scsi init
@@ -587,7 +587,7 @@ process and some suggested answers.
     Suggested Answer: SC-debian   (or whatever you like)
 
     Title: Configure the network
-    Descripton: Domain Name
+    Description: Domain Name
     Suggested Answer: lan
 
     Title: Continue installation remotely using SSH
@@ -686,7 +686,7 @@ be done once Debian has booted up on the unit. You may need
 to scroll up and down in the text display to see all the
 available options.
 
-First, configure the root file system partition    
+First, configure the root file system partition.    
 
     Title: Partition disks
 
@@ -699,7 +699,7 @@ First, configure the root file system partition
 
     Scroll down to and select "Done setting up the partition"
 
-Next, configure the swap partiton
+Next, configure the swap partition.
 
     Under "SCSI1 (0,0,0) (sda)"
     Select Partition #6 "Swap"
@@ -713,7 +713,7 @@ of the menu and select
 
     Finish partitioning and write changes to disk
 
-You will be prompted as follows
+You will be prompted as follows.
 
     Title: Partition disks
     Description: If you continue, the changes listed below will be written to the disks.
@@ -740,7 +740,7 @@ Debian servers. Make sure to select "Yes" to continue the installation.
     Answer: Yes (Make sure to answer Yes!!)
 
 A few minutes later after installing more software, you will be asked to
-partiticipate in a package usage survey. I'd suggest answering no. Users
+participate in a package usage survey. I'd suggest answering no. Users
 can opt in to it later if they wish to.
 
     Select and install software
@@ -751,9 +751,9 @@ can opt in to it later if they wish to.
 
 After approximately 10 minutes or so you will be presented with a screen 
 titled "Software selection". You'll be presented with a list packages
-and sofware to install. In order to minimize the size of the 
+and software to install. In order to minimize the size of the 
 installed software, make sure that nothing but the "SSH server" is
-selected. If "Standard System Utilites" or any other options are selected 
+selected. If "Standard System Utilities" or any other options are selected 
 then de-select them. Users can install whatever other software they 
 like once the system is up and running but the goal here is to keep the
 image as small as possible. You may need to scroll down to deselect
@@ -825,7 +825,7 @@ two kernels with the following commands issued as the root user.
     
     If "current_kernel=kernel2" then the boot partition is /dev/sda2
     
-    Visit the following projects for more details
+    Visit the following projects for more details.
     
     https://github.com/bertofurth/Seagate-Central-Debian
     https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel
@@ -854,7 +854,7 @@ Central as root.
 
 After creating this fw_env.config file, check that the "fw_printenv" command
 correctly displays the u-boot environment variables as per the following example.
-Note that the values you see might be slighty different.
+Note that the values you see might be slightly different.
 
     root@SC-debian:~# fw_printenv
     baudrate=38400
@@ -937,7 +937,7 @@ commands issued as root on the Seagate Central.
     systemctl enable sc-bootup
     systemctl enable sc-shutdown
     
-From now on when the unit has sucesfully booted up the status LED should turn
+From now on when the unit has successfully booted up the status LED should turn
 from blinking green to solid green and when the unit is commanded to shutdown 
 or reboot the status LED should start blinking red.
 
@@ -946,7 +946,7 @@ Modify the /etc/fstab file which governs what filesystems are mounted
 on boot. In the original fstab file, the Debian installer makes use of UUIDs
 to specify partitions but this is not helpful in our case because the UUIDs
 on the target system will not match the ones on the system we're creating this
-image with. We need to specify partiton names instead.
+image with. We need to specify partition names instead.
 
     cat << EOF > /etc/fstab
     # /etc/fstab: static file system information.
@@ -967,7 +967,7 @@ the Seagate Central native firmware would have sent. This is done so that
 when the unit is upgraded to Debian, it will be more likely to get the same
 DHCP assigned IP address as when it was running the native firmware. This
 makes it easier for the user to be able to reconnect to the unit after
-the upgrade. Make this modification with the following command
+the upgrade. Make this modification with the following command.
 
     echo "send dhcp-client-identifier = hardware;" >> /etc/dhcp/dhclient.conf
 
@@ -979,11 +979,11 @@ finding the unit's new IP address.
 ## Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
 it comes up as before with no significant errors in the console
-bootup logs. Once the loging prompt reappears, log back in as the root
+bootup logs. Once the login prompt reappears, log back in as the root
 user.
 
 ## Clean cached files and power off the Seagate Central 
-After confirming that the unit has succesfully rebooted, run the following 
+After confirming that the unit has successfully rebooted, run the following 
 commands to clear the disk of any cached Debian repository files and logs
 which can consume a large amount of space. We don't need to include these
 in the upgrade image.
@@ -991,7 +991,7 @@ in the upgrade image.
     apt-get clean
     rm -rf /var/log/*
 
-Shutdown the unit in preperation to take a snapshot of the disk image.
+Shutdown the unit in preparation to take a snapshot of the disk image.
 
     shutdown -h now
     
@@ -1007,7 +1007,7 @@ equivalent package installed so that the "mksquashfs" utility
 is available.
 
 All the commands shown from this point in this section should be
-executed with root privelidges (i.e. logged in as root or with 
+executed with root privileges (i.e. logged in as root or with 
 the "sudo" prefix)
 
 Check the identity of the drive connected using the hard drive reader
@@ -1031,7 +1031,7 @@ with the "lsblk" command. In the following example we see that the device
       mmcblk0p3 179:3    0 118.5G  0 part /
 
 Mount the Seagate Central's primary boot partition and
-root partiton. Note that in the following examples we use
+root partition. Note that in the following examples we use
 "sdX" for the drive name. You will need to substitute 
 the name of the drive on your device (e.g. "sda")
 
@@ -1061,7 +1061,7 @@ process to validate the contents of the upgrade image.
     echo "rfs=$(md5sum /tmp/rfs.squashfs | cut -c1-32)" >> config.ser
     echo "uboot=a7d30b1fa163c12c9fe0abf030746629" >> config.ser
     
-The contents of this file should look something like this example
+The contents of this file should look something like this example.
 
     # cat config.ser
     version=2023.0410.144332-S
@@ -1120,7 +1120,7 @@ also be updated.
 ## Troubleshooting
 In some rare cases after a major upgrade the ethernet interface can fail
 to operate properly unless the unit is power cycled. If network connectivity
-is lost after the Debian installtion process then shutdown with the
-"shutdown -h now" command via the serial console and then after a minute
-physically power cycle the unit.
+is lost at any stage after a reboot or after the Debian installation process
+then shutdown with the "shutdown -h now" command via the serial console and
+then physically power cycle the unit.
 
