@@ -43,7 +43,7 @@ As of writing (April 2023) the image will install Debian version 11,
 "Bullseye".
 
 For interested parties, this upgrade image was created using the procedure
-documented in this project by HOWTO-create-debian-image.md
+documented in this project in the file HOWTO-create-debian-image.md
 
 ### Install the Debian image using the Seagate Central Web Management page
 Login to the Seagate Central's web based management tool as an admin
