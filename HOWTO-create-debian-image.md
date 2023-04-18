@@ -1074,12 +1074,10 @@ The contents of this file should look something like this example.
 
 Finally, create the Seagate Central upgrade image with the following commands.
 
-    tar -czvf Debian-for-SC.img rfs.squashfs uImage config.ser
+    tar -czvf Debian-Bullseye-Seagate-Central.img rfs.squashfs uImage config.ser
 
-The resultant "Debian-for-SC.img" file can now be used to upgrade the
-Seagate Central as per the normal web based management tool procedure
-followed up by the steps in the main README.md file in this project. The
-image should be in the order of about 120MB in size.
+The resultant "Debian-Bullseye-Seagate-Central.img" file should be in the order
+of about 130MB in size.
 
 This image can now be used to install Debian on a Seagate Central, in conjunction
 with the instructions in the README.md file in this project.
