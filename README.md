@@ -389,8 +389,14 @@ a period of over about a minute or so, spurious errors may be
 generated causing the system to fail. In particular, errors such as
 "Segmentation Fault" or "Illegal Instruction" were reported.
 
-If the default non SMP CPU is run for hours at high CPU loads then the
-system appears to run stably.
+Most modern Linux platforms can cope with momentary high CPU temperatures by
+self regulating their CPU frequency and load, however the Seagate Central is not
+that sophisticated! It might be possible to use something like the "cpulimit"
+utility to make sure that certain processes do not consume too much CPU load
+in order reduce CPU temperatures but this is beyond the scope of this procedure.
+
+Our tests showed that if the default non SMP CPU is run for many hours at high CPU
+loads then the system appears to run stabily.
 
 That being said, an advanced user may wish to take the "risk" of running
 the more high performance but potentially less reliable SMP version
@@ -411,6 +417,13 @@ Identify the current boot partition by running the shell command
 If "current_kernel=kernel1" then the boot partition is /dev/sda1
 
 If "current_kernel=kernel2" then the boot partition is /dev/sda2 
+
+Mount the relevant boot partition, copy the desired kernel image to it,
+then reboot, as per the following example
+
+    mount /dev/sda2 /boot
+    cp /kernel/uImage.4k /boot/uImage
+    reboot
 
 ### Optimize disk layout.
 One problem with using the native Seagate Central native disk layout is that it is
@@ -668,24 +681,6 @@ As a benchmark for the system's performance, we managed to recompile the Linux
 kernel for Seagate Central on a Seagate Central running Debian. This process
 takes 45 minutes on a Raspberry Pi 4B (-j4). It takes about 7.5 hours on a Seagate
 Central (-j1).
-
-### CPU Cooling issues and random Segmentation Faults
-I have had some problems where occasionally the unit will fail under heavy load with
-"Segmentation Fault" style error messages. I have come to the conclusion that these are likely
-due to the CPU overheating. It seems that when the Seagate Central was manufactured, the
-heat dissipation characteristics of the unit were designed assuming that it would not be
-under sustained heavy CPU load.
-
-Unfortunatly the only remedy I can offer, other than manually modifying your unit to include
-a better heat sink, is the use of a Linux kernel that does NOT use smp. That is, by 
-forcing the unit to use only one of the two CPU cores the unit does not seem to generate as
-much heat and hence becomes more reliable but obviously it will run more slowly.
-
-Most modern Linux platforms can cope with momentary high CPU temperatures by
-self regulating their CPU frequency and load, however the Seagate Central is not
-that sophisticated! It might also be possible to use something like the "cpulimit"
-utility to make sure that certain processes do not consume too much CPU load in order
-to not heat up the CPU.
 
 ### Revert to original firmware
 The most common issue that may occur after an upgrade is that the unit no longer has network
