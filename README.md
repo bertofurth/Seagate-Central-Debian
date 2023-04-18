@@ -37,11 +37,12 @@ can be found in the releases section of this project at
 https://github.com/bertofurth/Seagate-Central-Debian/releases
 
 The image name will be something like 
-"Debian-Bullseye-Seagate-Central-v1.0.img"
+"Debian-Bullseye-Seagate-Central-vX.Y.img"
 
-As of writing the image will install Debian version 11, "Bullseye".
+As of writing (April 2023) the image will install Debian version 11,
+"Bullseye".
 
-For interested parties, these images were created using the procedure
+For interested parties, this upgrade image was created using the procedure
 documented in this project by HOWTO-create-debian-image.md
 
 ### Install the Debian image using the Seagate Central Web Management page
