@@ -709,5 +709,15 @@ at
 
 https://github.com/bertofurth/Seagate-Central-Tips/blob/main/Unbrick-Replace-Reset-Hard-Drive.md
 
+## TODO (but probably not)
+The factory default/reset button on the bottom of the unit does nothing in 
+Debian. Maybe we could get it to switch between the primary and secondary
+boot partitions.
 
+The LED status light could be programmed to somehow indicate that Debian
+has booted as opposed to the native firmware. Maybe a red/green flash for 
+5 seconds before the status LED goes to solid green could indicate that 
+Debian has successfully booted.
 
+We should provide basic instructions for getting Samba file sharing working
+in Debian because this is the main functionality that most people use on a NAS.
