@@ -24,8 +24,8 @@ It is assumed that readers have some familiarity with the basics of
 operating and maintaining a Debian based Linux system.
 
 ## TLDNR
-* Obtain the Debian upgrade image
-* Install the Debian image using the Seagate Central Web Management page
+* Obtain a Debian for Seagate Central upgrade image
+* Install the upgrade image using the Seagate Central Web Management page
 * Establish an ssh connection to the unit
 * Perform system customization (passwords, hostname, timezone etc)
 * Format and mount the large Data partition
