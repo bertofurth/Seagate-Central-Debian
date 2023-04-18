@@ -834,9 +834,9 @@ two kernels with the following commands issued as the root user.
     EOF
 
 ### Install extra required Debian packages
-First, we need to install the "u-boot-tools" and "dbus" Debian packages on
+We need to install the "u-boot-tools" and "dbus" Debian packages on
 the Seagate Central. These packages provide functionality that we'll depend
-on later. Using the followins commands on the Seagate Central to install
+on later. Use the following command on the Seagate Central to install
 these packages.
 
     apt-get -y install u-boot-tools dbus
@@ -864,7 +864,6 @@ Note that the values you see might be slighty different.
     bootdelay=5
     . . . .
     . . . .
-    
     
 ### Create Seagate Central specific boot scripts    
 Next, we need to create some boot scripts that perform Seagate Central specific
