@@ -425,6 +425,15 @@ then reboot, as per the following example
     cp /kernel/uImage.4k /boot/uImage
     reboot
 
+Users who are familiar with u-boot and the Linux kernel boot process might wonder
+why we simply don't just use the SMP kernel and change the kernel boot parameters
+to include the "nosmp" keyword. The problem is that there's no easy way to change
+these parameters in the Seagate Central version of u-boot. In a normal u-boot
+system the "bootargs" variable could be modified but in the Seagate Central
+version of u-boot the bootargs are actually hard coded! For this reason it's 
+necessary to use two different kernel image files to give the choice between
+smp and non-smp operation.
+
 ### Optimize disk layout.
 One problem with using the native Seagate Central native disk layout is that it is
 not optimized for Debian. Most notably, the root partition, which stores most of
@@ -721,3 +730,7 @@ Debian has successfully booted.
 
 We should provide basic instructions for getting Samba file sharing working
 in Debian because this is the main functionality that most people use on a NAS.
+
+We should create a simple webpage that appears when the system is 
+upgraded to Debian so that the user is not left "hanging" when the upgrade
+process from native firmware completes.
