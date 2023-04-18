@@ -825,6 +825,12 @@ two kernels with the following commands issued as the root user.
     
     If "current_kernel=kernel2" then the boot partition is /dev/sda2
     
+    Visit the following projects for more details
+    
+    https://github.com/bertofurth/Seagate-Central-Debian
+    https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel
+    https://github.com/bertofurth/Seagate-Central-Tips
+    
     EOF
 
 ### Install extra required Debian packages
