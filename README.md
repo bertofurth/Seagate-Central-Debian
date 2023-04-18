@@ -20,6 +20,9 @@ service. No other services, such as a samba file sharing service or
 a web management interface are installed. Installing these types of
 services and other customizations are left to the user. 
 
+It is assumed that readers have some familiarity with the basics of
+operating and maintaining a Debian based Linux system.
+
 ## TLDNR
 * Obtain the Debian upgrade image
 * Install the Debian image using the Seagate Central Web Management page
@@ -62,16 +65,22 @@ and in the file selection dialog, select the Debian for Seagate Central
 firmware update image that you obtained in the last step. Next, click on
 the "Install" button. 
 
-Click OK a the warning saying "Your Seagate Central must be on for the 
-duration of the update. This can take from 5 to 10 minutes. Do you want 
-to continue?"
+The following warning may appear.
+
+    Your Seagate Central must be on for the duration of the
+    update. This can take from 5 to 10 minutes. Do you want 
+    to continue?
+    
+ Click OK and make sure to keep the Seagate Central turned on!
 
 After a few minutes, at the point where the image has been uploaded to the
-unit the web page will display a message
+unit, the following message will be displayed.
 
     Rebooting in progress
 
-    The device is rebooting after completing system updates and changes. Wait until the page refreshes and the Seagate Central application appears.
+    The device is rebooting after completing system updates and 
+    changes. Wait until the page refreshes and the Seagate Central
+    application appears.
 
 Note that this page will **never** refresh because the unit will no longer 
 be running a Seagate Central native operating system. Instead, wait for about
@@ -140,9 +149,9 @@ to the following and will indicate the IP address of the Seagate Central
 From this output we can determine the IP address of the unit. In the example
 above it is 192.168.1.58.
 
-In some rare cases the unit's ethernet interface may not work after rebooting.
-Try power cycling the unit, waiting for the status LED to turn green and then
-trying to connect to the unit again.
+In some rare cases, the unit's ethernet interface may not work after rebooting.
+Try power cycling the unit, waiting for the status LED to turn green again and
+then try to connect to the unit again.
 
 If the unit becomes completely unreachable then go to the section at the end
 of this document titled "Revert to original firmware".
@@ -178,8 +187,8 @@ You will need to log out and log back in to your ssh session before
 you see the hostname changed in your command prompt.
 
 #### Configure the local timezone and time
-By default the system will be set to the North America/Pacific timezone.
-Change this as per the following example using your own timezone.
+By default, the system will be set to the North America/Pacific timezone.
+Change this timezone as per the following example.
 
     # Show current timezone settings
     timedatectl
@@ -205,12 +214,12 @@ Change this as per the following example using your own timezone.
     apt-get -y install systemd-timesyncd
     timedatectl set-ntp yes
     
-#### Make sure the swap partition is working
+#### Activate the swap partition
 By default, the swap partition on a Seagate Central is formatted to work with the
 native 64K page kernel. This is not compatible with the 4K page kernel used in 
 Debian. 
 
-To reconfigure the swap space issue the following commands.
+To reconfigure and activate the swap partition, issue the following commands.
 
     /sbin/mkswap /dev/sda6
     /sbin/swapon /dev/sda6
@@ -244,9 +253,15 @@ creating this directory and adding an appropriate entry to the
     echo "/dev/vg1/lv1    /Data           auto    errors=remount-ro      0      2" >> /etc/fstab
     mount /Data
   
-Another alternative for advanced users might be to repartition the
-large space at the end of the drive into multiple partitions. Perhaps
-one for Data, another for home directories and so on.
+Advanced users might decide to repartition the large space at the end
+of the drive into multiple partitions. Perhaps one for Data, another for
+home directories and so on.
+
+It is also theoretically possible to access the data on the native 64K page
+formatted Data partition by using the "fuse2fs" utility which is part of the
+"e2fsprogs" Debian package which can be installed on the system. Note however
+that this utility to access a partition is very slow compared to mounting a
+Data partition in the traditional way.
 
 ### Optional - Install Debian on backup partitions
 At this stage of the process the active Seagate Central partitions have
@@ -602,9 +617,9 @@ To enable ipv6 for webmin also install the following package
 
     apt-get install libsocket6-perl
     
-In order to access the webmin repository, add this line to /etc/apt/sources.list
+In order to access the webmin repository, add a line to /etc/apt/sources.list as follows
     
-    deb https://download.webmin.com/download/repository sarge contrib
+    echo "deb https://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
 
 Download and install webmin with the following commands
 
@@ -615,7 +630,8 @@ Download and install webmin with the following commands
 
 Since it takes so long for the slow Seagate Central to activate webmin, we need
 to modify the "TimeoutSec=15s" line in /lib/systemd/system/webmin.service to say
-"TimeoutSec=30s" instead so that the service has more time to start.
+"TimeoutSec=30s" instead so that the service has more time to start. Use the
+"nano" or "vi" editors to accomplish this.
 
 I would also suggest disabling ssl mode for the web server if you are running
 the Seagate Central on a trusted/home network. This can be done by editing
@@ -644,12 +660,14 @@ native firmware is because the native firmware's kernel used a 64K page size. Th
 makes disk operations quicker at the expense of system memory efficiency.
 
 It might be possible to load a 64K page size kernel with the Debian distribution 
-but my brief experience shows that the Seagate Central simply doesn't have 
+but our experience showed that the Seagate Central simply doesn't have 
 enough memory for it to work properly. In addition most Debian stock tools
 assume that the system is using a standard 4K page size.
 
-As a benchmark, I managed to recompile the Linux kernel for Seagate Central
-on a Seagate Central running Debian. It took about 8 hours.
+As a benchmark for the system's performance, we managed to recompile the Linux
+kernel for Seagate Central on a Seagate Central running Debian. This process
+takes 45 minutes on a Raspberry Pi 4B (-j4). It takes about 7.5 hours on a Seagate
+Central (-j1).
 
 ### CPU Cooling issues and random Segmentation Faults
 I have had some problems where occasionally the unit will fail under heavy load with
