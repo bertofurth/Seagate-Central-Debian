@@ -93,7 +93,7 @@ After the unit has rebooted you will need to establish an ssh connection
 to the IP address of the unit. The default username when using the firmware
 images published in the Releases section of this project is "sc" and the
 password is "SCdebian2022". You should then elevate to the root user
-by issuing the "su" command using the default root password which is
+by issuing the "su -" command using the default root password which is
 also "SCdebian2022" as per the following example.
 
     Linux SC-debian 5.15.86-sc #2 SMP Fri Jan 6 22:43:06 AEDT 2023 armv6l
@@ -104,7 +104,7 @@ also "SCdebian2022" as per the following example.
 
     Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
     permitted by applicable law.
-    sc@SC-debian:~$ su
+    sc@SC-debian:~$ su -
     Password: SCdebian2022
     root@SC-debian:/home/sc#
 
@@ -369,6 +369,225 @@ the following commands
 At this point the basic Debian system is ready. Users may now install
 Debian Linux tools and services as they see fit. 
 
+If you plan on installing a web server on the unit then another recommended
+step is to disable the temporary web server that displays the text message
+indicating that Debian has been installed.
+
+systemctl disable whatever
+
+## Install Other Services (Optional)
+Here are some brief notes about installing some other services on the unit.
+
+### Samba - File sharing server
+In this section we install and configure an example Samba file sharing 
+service. This example service has a Public folder (as on the Seagate Central).
+We also allow user's home directories to be accessible via samba using the
+user's login password, and we publish a special "Backup" folder that
+can only be accessed with a password.
+
+All commands are executed as the root user or with the sudo prefix.
+
+Install the samba file sharing software as follows
+
+    apt-get install samba
+    
+Next, create the directories that are going to be shared. The example
+commands below assume that the large Data partition is mounted at /Data
+
+    # Allow all valid users on the system to access and modify
+    # files in the Public directory but not to delete or
+    # rename them unless they own them.
+    mkdir /Data/Public
+    chmod 1777 /Data/Public
+    
+    # We'll assign the "sc" user owner of the backup directory
+    mkdir /Data/backup
+    chown sc:sc /Data/backup/
+    
+Unlike on the Seagate Central, the samba file sharing passwords
+do not have to be the same as the unix login passwords. To 
+change the samba file sharing password users must use the "smbpasswd"
+command.
+
+Initially, the root user needs to create a samba account for any users
+that wish to have a samba file share. In the example below we create a
+samba account with the "smbpasswd -a username" command. We also specify
+a password for new accounts. We create an account for existing Unix user "sc"
+and an account for for the "backup" samba user which does not have a
+Unix account on this machine.
+
+    root@SC-Debian:~# smbpasswd -a sc
+    New SMB password: MyFileSharePassword_sc
+    Retype new SMB password: MyFileSharePassword_sc
+    
+    root@SC-Debian:~# smbpasswd -a backup
+    New SMB password: PasswordForBackupShare
+    Retype new SMB password: PasswordForBackupShare
+
+Users can now use the "smbpasswd" command to change their samba file sharing
+password in the same way that they would use the "passwd" command to change
+their unix login password.
+
+The samba configuration is stored in the /etc/samba/smb.conf file.
+Backup the original configuration file and create a new file contents
+as seen below. The parameters used are based on those in the original
+Seagate Central firmware, so hopefully the file sharing service should
+behave in a similar way.
+
+    cp /etc/samba/smb.conf /etc/samba/smb.conf.orig
+    cat << EOF > /etc/samba/smb.conf
+    # Samba configuration file
+    
+    [global]
+        workgroup = WORKGROUP
+        deadtime = 15
+        load printers = No
+        log file = /var/log/samba/log.%m
+        logging = file
+        map to guest = Bad User
+        max log size = 1000
+        obey pam restrictions = Yes
+        pam password change = Yes
+        panic action = /usr/share/samba/panic-action %d
+        passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
+        passwd program = /usr/bin/passwd %u
+        server role = standalone server
+        server string = Seagate Central Debian Shared Storage
+        unix password sync = Yes
+        usershare allow guests = Yes
+        wins support = Yes
+        fruit:model = RackMac
+        fruit:time machine = yes
+        idmap config * : backend = tdb
+        delete veto files = Yes
+        hide files = /.*/Network Trash Folder/Temporary Items/
+        use sendfile = Yes
+        veto files = /.AppleDesktop/.AppleDouble/.bashrc/.profile/
+        vfs objects = catia fruit streams_xattr
+
+    [Public]
+        comment = Public
+        force group = nogroup
+        force user = nobody
+        path = /Data/Public
+        browsable = yes
+        read only = no
+        
+    # If you'd like user's home directories to be
+    # accessible via samba then add this section
+    [homes]
+        comment = Home Directories
+    # You may or may not want these to be browseable.
+        browseable = Yes
+        create mask = 0700
+        directory mask = 0700
+        valid users = %S
+        
+    # This is an example of a samba user that is not also
+    # a unix user. Tha
+    [backup]
+        comment = Network Backup Folder
+        create mask = 0700
+        directory mask = 0700
+        valid users = backup
+        path = /Data/backup
+     # Specify a username here that owns the path above
+        force user = sc
+         
+The configuration parameters given are based on those in the original
+Seagate Central firmware, so hopefully the file sharing service should
+behave in a similar way.
+
+The server can now be accessed by entering "\\server-name\Public" or
+"\\server-name\sc" in the Windows Explorer folder name field.
+
+#### Optional - Make samba discoverable by Windows Explorer
+Although the samba file sharing service is now accessable, it won't be
+automatically discoverable by Windows explorer. 
+
+If you'd like your server to be automatically discoverable using the
+Windows explorer "Network" window then you'll also need to install a tool
+called "wsdd" (Web Services Dynamic Discovery). This tool is not natively
+available in the Debian Bullseye software repository at the time of writing
+but can be installed as per the documentation at the tool's homepage.
+
+https://github.com/christgau/wsdd
+
+First, install the "wget" tool if it hasn't already been installed.
+
+     apt-get install wget
+
+Install the wsdd tool as follows.  
+
+CHECK THAT GPG IS ALREADY INSTALLED. I THINK IT IS.
+
+    wget -O- https://pkg.ltec.ch/public/conf/ltec-ag.gpg.key | gpg --dearmour > /usr/share/keyrings/wsdd.gpg
+    source /etc/os-release
+    echo "deb [signed-by=/usr/share/keyrings/wsdd.gpg] https://pkg.ltec.ch/public/ ${UBUNTU_CODENAME:-${VERSION_CODENAME:-UNKNOWN}} main" > /etc/apt/sources.list.d/wsdd.list
+    apt update
+    
+Activate the wsdd tool as follows
+
+     systemctl start wsdd
+     
+After activating wsdd the server should be automatically detectable in the
+Windows Explorer Network view.
+
+#### Creating a Public folder
+
+
+
+### Webmin - Simple web based administration tool
+It is possible to install the "webmin" web based management tool with Debian
+running on the Seagate Central. Our testing showed that it works quite well but
+it is very slow and it doesn't always seem to be 100% reliable. 
+
+Since the installation takes somewhere around 500MB then I'd strongly suggest
+repartitioning the drive so that the root partition is much bigger than the
+default of 1GB. See the section below entitled "Optimize disk layout".
+
+Here are some brief notes on installing webmin on the Seagate Central running
+Debian. This is based on the documentation at https://www.webmin.com/deb.html
+
+As root, install the required packages:
+
+    apt-get install wget perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python unzip shared-mime-info gnupg apt-transport-https
+
+To enable ipv6 for webmin also install the following package
+
+    apt-get install libsocket6-perl
+    
+In order to access the webmin repository, add a line to /etc/apt/sources.list as follows
+    
+    echo "deb https://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list.d/webmin.list
+
+Download and install webmin with the following commands
+
+    wget https://download.webmin.com/jcameron-key.asc
+    apt-key add jcameron-key.asc
+    apt-get update
+    apt-get install webmin
+
+Since it takes so long for the slow Seagate Central to activate webmin, we need
+to modify the statup service file /lib/systemd/system/webmin.service and 
+change "TimeoutSec=15s" to "TimeoutSec=30s". This allows the webmin service enough time
+to start. Use the "nano" or "vi" editors to accomplish this.
+
+I would also suggest disabling ssl mode for the web server if you are running
+the Seagate Central on a trusted/home network. This can be done by editing
+/etc/webmin/miniserv.conf and changing "ssl=1" to "ssl=0". Even though 
+it's less secure it's much less strain on the system CPU. If you're using your
+Seagate Central on a public or untrusted network then leave ssl enabled.
+
+Reboot the unit with the "reboot" command and login via the webmin web interface 
+on port 10000 using URL similar to http://192.168.1.99:10000 . If your browser complains 
+about any security issues then just ignore them for the moment. When prompted, login using
+the root username and password.
+
+Please raise an "issue" in the project if you manage to somehow tweak webin or another
+web based management tool to be less resource hungry or more reliable on the Seagate
+Central.
+
 ## Notes and Discussion (Advanced)
 This section contains some discussion about advanced topics that are only for
 interested readers. These sections do not need to be followed to get a basic
@@ -622,53 +841,6 @@ https://github.com/bertofurth/Seagate-Central-Tips/blob/main/Unbrick-Replace-Res
 
 to repartition the drive so that the partitions are sized appropriately.
 
-### Webmin - Simple web based administration tool
-I tried installing the "webmin" web based management tool on Debian running on the
-Seagate Central. It works but very, very slowly and not 100% reliably. If you're 
-going to install something like this then I'd strongly suggest repartitioning
-the drive so that the root partition is much bigger than the default of 1GB.
-
-Here are some brief notes on installing webmin on the Seagate Central running
-Debian. This is based on the documentation at https://www.webmin.com/deb.html
-
-As root, install the required packages:
-
-    apt-get install wget perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python unzip shared-mime-info gnupg apt-transport-https
-
-To enable ipv6 for webmin also install the following package
-
-    apt-get install libsocket6-perl
-    
-In order to access the webmin repository, add a line to /etc/apt/sources.list as follows
-    
-    echo "deb https://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
-
-Download and install webmin with the following commands
-
-    wget https://download.webmin.com/jcameron-key.asc
-    apt-key add jcameron-key.asc
-    apt-get update
-    apt-get install webmin
-
-Since it takes so long for the slow Seagate Central to activate webmin, we need
-to modify the "TimeoutSec=15s" line in /lib/systemd/system/webmin.service to say
-"TimeoutSec=30s" instead so that the service has more time to start. Use the
-"nano" or "vi" editors to accomplish this.
-
-I would also suggest disabling ssl mode for the web server if you are running
-the Seagate Central on a trusted/home network. This can be done by editing
-/etc/webmin/miniserv.conf and changing "ssl=1" to "ssl=0". Even though 
-it's less secure it's much less strain on the system CPU. If you're using your
-Seagate Central on a public or untrusted network then leave ssl enabled.
-
-Reboot the unit and login via the webmin web interface on port 10000 using URL
-similar to http://192.168.1.99:10000 . If your browser complains about invalid
-security then just ignore that for the moment. When prompted, login using the root
-username and password.
-
-Please raise an "issue" in the project if you manage to somehow tweak webin or another
-web based management tool to be less resource hungry or more reliable on the Seagate
-Central.
 
 ### Performance 
 Debian on Seagate Central will perform less efficiently than the native Seagate 
