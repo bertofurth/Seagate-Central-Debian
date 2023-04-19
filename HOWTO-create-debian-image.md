@@ -128,17 +128,18 @@ machine and download these files. Check the URL you are using to download.
 The reason we need to download two kernels is that our tests have shown that
 under some circumstances the unit is not physically capable of using SMP
 mode. This is because of heat dissipation issues. There is more discussion
-about this issue the main README.md file in this project.
+about this issue in the main README.md file in this project under the
+section entitled "Choice of Linux kernels (SMP / no SMP)".
 
 We will set up the installation image to install the "nosmp" version of the kernel
 by default and users can chose to manually change to the smp enabled version if
 they want to take the risk of running it.
 
-The Seagate Central natively uses a 64K page size kernel for the sake of disk
-performance however the 4K page size kernel is significantly more memory efficient.
-Since the Debian operating system is more memory hungry than the native Seagate
-Central firmware it is necessary to make this compromise between disk performance and
-memory efficiency.
+Another point worht noting is that the Seagate Central natively uses a 64K page
+size kernel for the sake of disk performance however the 4K page size kernel is
+significantly more memory efficient. Since the Debian operating system can be more
+memory hungry than the native Seagate Central firmware it was judged necessary to
+make this compromise between disk performance and memory efficiency.
 
 If you wish, you can recompile the kernel according to your own desire and
 specifications.
@@ -975,6 +976,23 @@ Note that if a user has configured their Seagate Central to use a static
 IP address, then the unit will come up with a different DHCP assigned IP 
 address and they will have to go through the sometimes tedious process of
 finding the unit's new IP address.
+
+
+## UNFINISHED TODO - Setup simple web server
+**THIS SECTION IS UNFINISHED - IGNORE THIS SECTION FOR NOW**
+This step of the process is technically optional but it might
+make the installation process a little more refined for a non technical user.
+
+Here we create a script that displays a very simple web page message that will
+be displayed if someone tries to connect to the unit via http. It will simply
+state that Debian has been installed, what the IP address of the unit is, and
+that the unit needs to be configured via ssh.
+
+ Install the netcat tool and create a script as follows.
+
+
+while true; do { echo -e "HTTP/1.1 200 OK\r\n$(date)\r\n\r\n<h1>hello world from $(hostname) on $(date)</h1>" |  nc -vl 8080; } done
+
 
 ## Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
