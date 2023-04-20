@@ -878,7 +878,7 @@ up the kernel and operating systems on the backup set of partitions.
 
 The script also commands the LED status light to turn solid green and sets the
 network interrupt CPU affinity to CPU 1, which our testing showed will slightly
-improve networking performance.
+improve networking performance if the SMP kernel is active.
 
 Create these boot script and associated systemd service files with the following
 commands issued as root on the Seagate Central.
@@ -892,6 +892,7 @@ commands issued as root on the Seagate Central.
     echo Resetting u-boot environment variable num_boot_tries to 0
     fw_setenv num_boot_tries 0 &> /dev/null
     echo Set network CPU affinity to CPU 1
+    # If the smp kernel is not active these will fail, but no matter.
     echo 2 > /proc/irq/49/smp_affinity
     echo 2 > /proc/irq/51/smp_affinity
     EOF
@@ -913,7 +914,8 @@ commands issued as root on the Seagate Central.
     After=multi-user.target
 
     [Service]
-    ExecStart=/bin/bash /usr/sbin/sc-bootup.sh
+    Type=oneshot
+    ExecStart=-/bin/bash /usr/sbin/sc-bootup.sh
     
     [Install]
     WantedBy=multi-user.target
@@ -962,27 +964,26 @@ of the fstab file to include the large Data partition and possibly the
 "boot" and other partitions. 
 
 ### Customize dhcp client configuration in /etc/dhcp/dhclient.conf
-We need to modify the default dhcp client configuration to ensure that
-the unit sends a dhcp client identifier that is the same as the one that
-the Seagate Central native firmware would have sent. This is done so that
-when the unit is upgraded to Debian, it will be more likely to get the same
-DHCP assigned IP address as when it was running the native firmware. This
-makes it easier for the user to be able to reconnect to the unit after
-the upgrade. Make this modification with the following command.
+Here we modify the default dhcp client configuration to make it more
+likely that the unit gets the same DHCP assigned IP address as when
+it was running Seagate Central native firmware. This is done by setting
+the dhcp-client-identifier to the same value as in Seagate Central native
+firmware. This makes it easier for the user to be able to reconnect to
+the unit after the upgrade. Make this modification with the following command.
 
     echo "send dhcp-client-identifier = hardware;" >> /etc/dhcp/dhclient.conf
 
-Note that if a user has configured their Seagate Central to use a static
-IP address, then the unit will come up with a different DHCP assigned IP 
-address and they will have to go through the sometimes tedious process of
-finding the unit's new IP address.
-
+Unfortunately, depending on the DHCP server software and configuration, the
+unit may still end up with a different IP address after it boots up
+the Debian operating system. In addition, if a user has configured their 
+Seagate Central to use a static IP address, then the unit will almost certainly
+come up with a different DHCP assigned IP address. 
 
 ## Simple status web server
 This step sets up the unit to display a very simple status message when
-someone tries to access it via a web browser. This helps users to see
-that the unit is no longer running Seagate Central native firmware but
-that it is running Debian.
+someone tries to access it on http port 80 via a web browser. This helps
+users to see that the unit is no longer running Seagate Central native 
+firmware but that it is running Debian. 
 
 The script uses the netcat tool rather than a full blown web server as
 this only uses a small amount of disk and cpu resources. The webpage
@@ -1007,7 +1008,7 @@ Install the netcat tool and create the script with the following commands.
      </h3>
      <a href='https://github.com/bertofurth/Seagate-Central-Debian'>
      Debian for Seagate Central project homepage</a>
-     " |  nc -l 80 > /dev/null; }
+     " |  nc -4 -6 -l 80 > /dev/null; }
     done
     EOF
     
@@ -1028,6 +1029,9 @@ Install the netcat tool and create the script with the following commands.
     systemctl start sc-statuspage
     systemctl enable sc-statuspage
     
+Users should disable this service if they plan on installing a 
+proper web server on the unit.
+
 ## Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
 it comes up as before with no significant errors in the console
