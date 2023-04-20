@@ -1106,7 +1106,7 @@ have difficulty decompressing the image during installation.
 Create a "config.ser" file which is used by the Seagate Central upgrade
 process to validate the contents of the upgrade image.
 
-    echo "version=$(date +%Y.%m%d.%H%M%S-S)" > config.ser
+    echo "version=$(date +%Y.%m%d.%H%M%S-SCD)" > config.ser
     echo "device=cirrus_v1" >> config.ser
     echo "from=all" >> config.ser
     echo "release_date=$(date +%d-%m-%Y)" >> config.ser
@@ -1117,7 +1117,7 @@ process to validate the contents of the upgrade image.
 The contents of this file should look something like this example.
 
     # cat config.ser
-    version=2023.0410.144332-S
+    version=2023.0410.144332-SCD
     device=cirrus_v1
     from=all
     release_date=10-04-2023
@@ -1175,3 +1175,9 @@ is lost at any stage after a reboot or after the Debian installation process
 then shutdown with the "shutdown -h now" command via the serial console and
 then physically power cycle the unit.
 
+## TODO (but probably not)
+It wouldn't be hard make another upgrade image with an active samba service
+already running, but the instruction in the HOWTO-Samba-File-Sharing.md are
+quite easy to follow. An extra benefit of having a samba service already running
+is that it would make it much easier for users to find the IP address
+of the unit once it has upgraded.
