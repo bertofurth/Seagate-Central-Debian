@@ -17,7 +17,8 @@ Install the samba file sharing software as follows
 
     apt-get install samba
     
-The installation will consume about XX MB of space.
+The installation will consume in the order of about 200 MB of space on the
+root partition.
 
 ## Preparation    
 Create the "Public" and "sc-backup" directories that are going to be shared. 
@@ -147,18 +148,18 @@ First, install the "wget" tool if it hasn't already been installed.
 
      apt-get install wget
 
-Install the wsdd tool as follows.  
-
-CHECK THAT GPG IS ALREADY INSTALLED. I THINK IT IS.
+Install the wsdd tool as follows. (The "gpg" package should already be
+installed as part of installing samba).
 
     wget -O- https://pkg.ltec.ch/public/conf/ltec-ag.gpg.key | gpg --dearmour > /usr/share/keyrings/wsdd.gpg
     source /etc/os-release
     echo "deb [signed-by=/usr/share/keyrings/wsdd.gpg] https://pkg.ltec.ch/public/ ${UBUNTU_CODENAME:-${VERSION_CODENAME:-UNKNOWN}} main" > /etc/apt/sources.list.d/wsdd.list
     apt update
+    apt install wsdd
     
 Activate the wsdd tool as follows
 
-     systemctl start wsdd
+    systemctl start wsdd
      
 After activating wsdd the server should be automatically detectable in the
 Windows Explorer Network view.
