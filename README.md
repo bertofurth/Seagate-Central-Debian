@@ -194,9 +194,8 @@ change it before installing any more tools or utilities.
 This can be done with the following commands issued as root
 
     hostnamectl set-hostname YourNewHostName
-    sed -i 's/SC-debian/YourNewHostName/g' /etc/hosts
-    sed -i 's/SC-debian/YourNewHostName/g' /etc/ssh/*.pub
-
+    sed -i 's/SC-debian/YourNewHostName/g' /etc/hosts /etc/ssh/*.pub
+    
 You will need to log out and log back in to your ssh session before
 you see the hostname changed in your command prompt.
 
