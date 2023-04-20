@@ -1015,7 +1015,7 @@ Install the netcat tool and create the script with the following commands.
     # Create the systemd service file for the status web page
     cat << EOF > /etc/systemd/system/sc-statuspage.service
     [Unit]
-    Description=Seagate Central status webpage
+    Description=Debian for Seagate Central status webpage
     After=multi-user.target
 
     [Service]
