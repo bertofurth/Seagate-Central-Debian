@@ -375,7 +375,8 @@ primary partitions. Issue the following commands to do so.
 ### Cleanup
 After initial system setup is complete then the installation files left
 over from the Seagate Central upgrade process can be removed with
-the following commands
+the following commands. This will free up over 100MB of disk space so
+this is an important step.
 
     rm /rfs.squashfs
     
@@ -696,7 +697,6 @@ Central. We delete partitions 4 through 6 and then reconstruct them.
 Another approach would be to also delete the large Data partition, increase
 the root partition to an even larger size, and then rebuild the Data partition.
 
-
 ### Performance 
 Debian on Seagate Central will perform less efficiently than the native Seagate 
 Central firmware, however it is obviously far more versatile.
@@ -746,18 +746,28 @@ at
 https://github.com/bertofurth/Seagate-Central-Tips/blob/main/Unbrick-Replace-Reset-Hard-Drive.md
 
 ## TODO (but probably not)
+### IP address change
+The most flawed part of the upgrade procedure is that in some cases, the unit's
+IP address can potentially change after the switch from Seagate Central native 
+firmware to Debian. This means that the user must go to the effort of rediscovering
+the new IP address of the unit before they can reconnect to it.
+
+Although a brief guide is given on how to locate the unit's IP address
+after the upgrade, it would be ideal if there was some automatic method.
+
+One option is to have an upgrade image that contains a pre-installed samba
+service, along with service advertisement daemons so that the server will
+automatically appear in client File Manager programs however this would
+add considerable size to the upgrade image.
+
+### Factory default button
 The factory default/reset button on the bottom of the unit does nothing in 
 Debian. Maybe we could get it to switch between the primary and secondary
 boot partitions.
 
+### LED status light
 The LED status light could be programmed to somehow indicate that Debian
 has booted as opposed to the native firmware. Maybe a red/green flash for 
 5 seconds before the status LED goes to solid green could indicate that 
 Debian has successfully booted.
 
-We should provide basic instructions for getting Samba file sharing working
-in Debian because this is the main functionality that most people use on a NAS.
-
-We should create a simple webpage that appears when the system is 
-upgraded to Debian so that the user is not left "hanging" when the upgrade
-process from native firmware completes.
