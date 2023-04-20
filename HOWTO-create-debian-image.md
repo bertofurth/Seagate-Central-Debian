@@ -978,22 +978,57 @@ address and they will have to go through the sometimes tedious process of
 finding the unit's new IP address.
 
 
-## UNFINISHED TODO - Setup simple web server
-**THIS SECTION IS UNFINISHED - IGNORE THIS SECTION FOR NOW**
-This step of the process is technically optional but it might
-make the installation process a little more refined for a non technical user.
+## Simple status web server
+This step sets up the unit to display a very simple status message when
+someone tries to access it via a web browser. This helps users to see
+that the unit is no longer running Seagate Central native firmware but
+that it is running Debian.
 
-Here we create a script that displays a very simple web page message that will
-be displayed if someone tries to connect to the unit via http. It will simply
-state that Debian has been installed, what the IP address of the unit is, and
-that the unit needs to be configured via ssh.
+The script uses the netcat tool rather than a full blown web server as
+this only uses a small amount of disk and cpu resources. The webpage
+will simple state that Debian has been installed, what the IP 
+address of the unit is, and that the unit needs to be configured via ssh.
 
- Install the netcat tool and create a script as follows.
+Install the netcat tool and create the script with the following commands.
 
+    apt-get -y install netcat
 
-while true; do { echo -e "HTTP/1.1 200 OK\r\n$(date)\r\n\r\n<h1>hello world from $(hostname) on $(date)</h1>" |  nc -vl 8080; } done
+    cat << EOF > /usr/sbin/sc-statuspage.sh
+    #!/bin/bash
+    # This script displays a simple status message on http port 80
+    while true; do {
+     echo -e "HTTP/1.1 200 OK\r\n$(date)\r\n\r\n<h1>
+     Debian for Seagate Central NAS is running on this device</h1>\r\n
+     <h2>
+     Please connect to the unit's IP address via ssh to configure. </h2>
+     <h3>
+     Hostname: $(hostname) <br> <br>
+     Current system time: $(date) <br> <br>
+     Current IP addresses: $(hostname -I) <br>
+     </h3>
+     <a href='https://github.com/bertofurth/Seagate-Central-Debian'>
+     Debian for Seagate Central project homepage</a>
+     " |  nc -l 80 > /dev/null; }
+    done
+    EOF
+    
+    # Create the systemd service file for the status web page
+    cat << EOF > /etc/systemd/system/sc-statuspage.service
+    [Unit]
+    Description=Seagate Central status webpage
+    After=multi-user.target
 
-
+    [Service]
+    ExecStart=/bin/bash /usr/sbin/sc-statuspage.sh
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    
+    # Enable the new service in systemd
+    systemctl start sc-statuspage
+    systemctl enable sc-statuspage
+    
 ## Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
 it comes up as before with no significant errors in the console
