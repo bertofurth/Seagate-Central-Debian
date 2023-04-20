@@ -6,54 +6,53 @@ This document describes how to install and configure a simple
 samba file sharing service on the Debian for Seagate Central system.
 
 The example used will share a Public folder (as on the native 
-Seagate Central, share user's password protected home directories
-and we publish a network backup folder for the sc user.
+Seagate Central), share user's password protected home directories
+and publish another seperate folder for the sc user.
 
 All commands in this document are executed as the root user or with the
 sudo prefix on the Seagate Central running Debian. 
 
-## Installation
+## Installation of samba software
 Install the samba file sharing software as follows
 
     apt-get install samba
     
-The installation will consume in the order of about 200 MB of space on the
-root partition.
+The installation of this package and it's dependancies will consume in the
+order of about 200 MB of space on the root partition.
 
-## Preparation    
+## Preparation of directories and users   
 Create the "Public" and "sc-backup" directories that are going to be shared. 
 In the example below we assume that the large Data partition is mounted at
-/Data . We make the user "sc" the owner of the "sc-backup" directory. The Public
-directory will be able to be written to and manipulated by any user.
+/Data . The Public directory will be accessible by any user, including "guests"
+but the "sc-backup" directory will only be accessible by user "sc".
 
     mkdir /Data/Public
-    chown nobody:nogroup Public
+    chown nobody:nogroup /Data/Public
     chmod 755 /Data/Public
     
-    # We'll assign the "sc" user owner of the backup directory
+    # Assign the "sc" user owner of the backup directory
     mkdir /Data/sc-backup
     chown sc:sc /Data/sc-backup/
     
 The root user needs to create a samba account for any users that wish
-to have a samba file share using the "smbpasswd -a username" command.
+to have a samba file share by using the "smbpasswd -a username" command.
 This would normally be done just after a new unix user is created with
 the "adduser" command or similar.
 
-In the example below we create a samba for existing Unix user "sc". This
-also needs to be done in future for any other users that wish to share
+In the example below we create a samba account for existing Unix user "sc".
+This needs to be done in future for any other users that wish to share
 folders with samba.
 
     root@SC-Debian:~# smbpasswd -a sc
     New SMB password: MyFileSharePassword_sc
     Retype new SMB password: MyFileSharePassword_sc
 
-Users can now use the "smbpasswd" command to change their own samba file
+Users can use the "smbpasswd" command to change their own samba file
 sharing password in the same way that they would use the "passwd" command 
-to change their unix login password. Unlike with the Seagate Central native
-web management interface, the samba file sharing passwords are not automatically
-synchronized with unix user passwords. This means that the file sharing 
-and unix login passwords can be different, but if the user wishes they can
-set them to be the same as each other.
+to change their unix login password. The samba file sharing passwords are
+not automatically synchronized with unix user passwords. This means that
+the file sharing and unix login passwords can be different, but if the
+user wishes they can set the same as each other.
 
 ## samba configuration
 The samba configuration is stored in the /etc/samba/smb.conf file.
@@ -144,12 +143,13 @@ but can be installed as per the documentation at the tool's homepage.
 
 https://github.com/christgau/wsdd
 
-First, install the "wget" tool if it hasn't already been installed.
+First, install the "wget" package if it hasn't already been installed.
 
      apt-get install wget
 
-Install the wsdd tool as follows. (The "gpg" package should already be
-installed as part of installing samba).
+Install the wsdd tool as follows. The "gpg" tool and most of the other
+dependancies of wssd should should already be installed as part of
+installing samba.
 
     wget -O- https://pkg.ltec.ch/public/conf/ltec-ag.gpg.key | gpg --dearmour > /usr/share/keyrings/wsdd.gpg
     source /etc/os-release
