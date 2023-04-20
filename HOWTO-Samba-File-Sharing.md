@@ -93,7 +93,8 @@ behave in a similar way.
         vfs objects = catia fruit streams_xattr
 
     [Public]
-        comment = Public
+        comment = Public Folder. Anyone can read, write and delete files here.
+        guest ok = yes
         force group = nogroup
         force user = nobody
         create mask = 0666
@@ -111,6 +112,7 @@ behave in a similar way.
         create mask = 0700
         directory mask = 0700
         valid users = %S
+        read only = no
         
     [sc-backup]
         comment = User sc network backup folder
@@ -119,17 +121,23 @@ behave in a similar way.
         directory mask = 0700
         valid users = sc
         path = /Data/sc-backup
-     
+        read only = no
     EOF   
 
 After any changes are made to the /etc/samba/smb.conf configuration file
-the samba service must be restarted
+issue the "testparm" command to sanity check the new configuration, then
+restart the samba service as follows.
 
+    testparm
     systemctl restart smbd nmbd
 
+The server is now serving the following folders
 
-The server can now be accessed by entering "\\server-name\Public" or
-"\\server-name\sc" in the Windows Explorer folder name field.
+\\server-name\Public - Public folder accessible by anyone
+\\server-name\sc - The "sc" user's home directory (password protected)
+\\server-name\sc-backup - The "sc" user's backup storage directory (password protected)
+
+You should be able to 
 
 #### Optional - Make samba discoverable by Windows Explorer
 Although the samba file sharing service is now accessable, it won't be
