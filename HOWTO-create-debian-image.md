@@ -1003,8 +1003,8 @@ Install the netcat tool and create the script with the following commands.
      Please connect to the unit's IP address via ssh to configure. </h2>
      <h3>
      Hostname: $(hostname) <br> <br>
-     Current system time: $(date) <br> <br>
-     Current IP addresses: $(hostname -I) <br>
+     System time: $(date) <br> <br>
+     IP addresses: $(hostname -I) <br>
      </h3>
      <a href='https://github.com/bertofurth/Seagate-Central-Debian'>
      Debian for Seagate Central project homepage</a>
