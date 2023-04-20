@@ -1104,7 +1104,7 @@ Create a squashfs image of the debian root partition. Note that we
 use a low level of compression (1) so that the Seagate Central will not
 have difficulty decompressing the image during installation.
 
-    mksquashfs debian-root rfs.squashfs -all-root -noappend -Xcompression-level 1
+    mksquashfs debian-root rfs.squashfs -noappend -Xcompression-level 1
 
 Create a "config.ser" file which is used by the Seagate Central upgrade
 process to validate the contents of the upgrade image.
