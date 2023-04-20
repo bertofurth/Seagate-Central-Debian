@@ -2,6 +2,19 @@
 This is a procedure for installing a basic Debian Linux system 
 on a Seagate Central NAS.
 
+Note that these instructions only get the unit to the point of having a
+a very basic Debian based Linux operating system with a working ssh
+service. 
+
+It is assumed that users embarking on this upgrade process have some
+familiarity with the basics of operating and maintaining a Debian based
+Linux system.
+
+Some brief guidelines for setting up a simple samba file sharing service
+are given in the file HOWTO-Samba-File-Sharing.md. Installing other services
+that the native Seagate Central firmware provided such as a DLNA media
+server, and a web management interface are left to the user.
+
 ## Warning 
 **Performing modifications of this kind on the Seagate Central is not 
 without risk. Making the changes suggested in these instructions will
@@ -14,22 +27,15 @@ or in a system that people's health or safety depends on.**
 **This procedure will overwrite any data or settings on the unit being
 worked on. Be sure to backup any important data before proceeding.**
 
-Note that these instructions only get the unit to the point of having a
-a very basic Debian based Linux operating system with a working ssh
-service. No other services, such as a samba file sharing service or
-a web management interface are installed. Installing these types of
-services and other customizations are left to the user. 
-
-It is assumed that readers have some familiarity with the basics of
-operating and maintaining a Debian based Linux system.
-
 ## TLDNR
 * Obtain a Debian for Seagate Central upgrade image
 * Install the upgrade image using the Seagate Central Web Management page
-* Establish an ssh connection to the unit
+* Establish an ssh connection to the unit (username "sc", password "SCDebian2022")
+* Elevate to root with the "su -" command (root password "SCDebian2022")
 * Perform system customization (passwords, hostname, timezone etc)
 * Format and mount the large Data partition
 * Cleanup
+* Perform any other desired customizations
 
 ## Procedure
 ### Obtain the Debian upgrade image
@@ -82,19 +88,74 @@ unit, the following message will be displayed.
     changes. Wait until the page refreshes and the Seagate Central
     application appears.
 
-Note that this page will **never** refresh because the unit will no longer 
+Note that this page may **never** refresh because the unit will no longer 
 be running a Seagate Central native operating system. Instead, wait for about
 two minutes for the status LED on the unit to transition from flashing red,
 then solid amber, then flashing green then finally solid green which indicates
-that the unit has successfully rebooted. 
+that the unit has successfully rebooted and move on to the next section.
 
 ### Establish an ssh connection to the unit
+#### Finding the unit's new IP address
 After the unit has rebooted you will need to establish an ssh connection
-to the IP address of the unit. The default username when using the firmware
-images published in the Releases section of this project is "sc" and the
-password is "SCdebian2022". You should then elevate to the root user
-by issuing the "su -" command using the default root password which is
-also "SCdebian2022" as per the following example.
+to the IP address of the unit. 
+
+In some cases, depending on your local DHCP server configuration, the unit may
+come back up with the same DHCP assigned IP address it had while running Seagate
+Central native firmware. If this is the case then you should see a message appear
+in your browser indicating that the unit has upgraded to Debian and what
+the unit's IP address is.
+
+If no such status message appears or if the unit's IP address appears to have
+changed then the first thing to try is to type the following URL in you browser 
+window.
+
+     http://SC-Debian
+     
+If your DHCP service is integrated with your local DNS server then the system
+might be intelligent enough to be able to connect to the NAS this way. You
+should see a message indicating that the NAS is now running Debian and what
+the unit's IP address is.
+     
+If this does not work then the next step is to use a "network scanner" or
+"ip scanner" style tool or app such as "Advanced IP scanner" or 
+"Angry IP scanner" on a computer connected to the same network as the
+Seagate Central to find it's IP address. The tool should indicate that there
+is a device with a "Seagate" MAC address and this is most likely the 
+Seagate Central.
+
+There is a command line tool called "nmap" that can also be used to search for
+hosts on the local network that are offering an ssh service on port 22.
+
+In the following example the local network segment has address 192.168.1.X so we
+use the following form of nmap command. Substitute your own local IP subnet
+address.
+
+    nmap -p 22 192.168.1.0/24
+
+This command will report the IP and MAC addresses of all devices on the
+local network segment with an ssh service available. One of the listed
+hosts should look similar to the following and will indicate the IP
+address of the Seagate Central
+
+    Nmap scan report for 192.168.1.58
+    Host is up (0.00014s latency).
+
+    PORT   STATE SERVICE
+    22/tcp open  ssh
+    MAC Address: 00:10:75:XX:XX:XX (Segate Technology)
+
+In some rare cases, the unit's ethernet interface may not work after rebooting.
+Try power cycling the unit, waiting for the status LED to turn green again and
+then try to connect to the unit again.
+
+If the unit becomes completely unreachable then go to the section at the end
+of this document titled "Revert to original firmware".
+
+#### ssh into the unit
+The default username when using the firmware images published in the Releases
+section of this project is "sc" and the password is "SCdebian2022". You should
+then elevate to the root user by issuing the "su -" command using the default
+root password which is also "SCdebian2022" as per the following example.
 
     Linux SC-debian 5.15.86-sc #2 SMP Fri Jan 6 22:43:06 AEDT 2023 armv6l
 
@@ -107,55 +168,8 @@ also "SCdebian2022" as per the following example.
     sc@SC-debian:~$ su -
     Password: SCdebian2022
     root@SC-debian:/home/sc#
-
-In most cases the unit should come back up with the same DHCP assigned IP address
-it had while running Seagate Central native firmware. If this is the case and you've 
-managed to establish an ssh connection then at this point you can skip forward 
-to the next section. 
-
-If, however, your Seagate Central was configured with a static IP address then
-the unit will be likely to have acquired a different DHCP assigned IP address 
-from the one it used to have.
-
-For this reason you will have to determine the IP address of the new system
-before connecting to it and there isn't a straight forward way to do this.
-The easiest way is to use a "network scanner" or "ip scanner" style tool or app
-such as "Advanced IP scanner" or "Angry IP scanner" on a computer connected to
-the same network as the Seagate Central to find it's IP address.
-
-If you have a Linux system then another alternative is to use the "nmap"
-utility to search for hosts on the local network that are offering an ssh service
-on port 22.
-
-In the following example the local network segment has address 192.168.1.X so we
-use the following form of nmap command.
-
-    nmap -p 22 192.168.1.0/24
-
-This command will report the IP and MAC addresses of all devices on the
-local network segment with an ssh service available. You must use your
-own local IP subnet in the command.
-
-Scroll through the results. One of the listed hosts should look similar 
-to the following and will indicate the IP address of the Seagate Central
-
-    Nmap scan report for 192.168.1.58
-    Host is up (0.00014s latency).
-
-    PORT   STATE SERVICE
-    22/tcp open  ssh
-    MAC Address: 00:10:75:XX:XX:XX (Segate Technology)
-
-From this output we can determine the IP address of the unit. In the example
-above it is 192.168.1.58.
-
-In some rare cases, the unit's ethernet interface may not work after rebooting.
-Try power cycling the unit, waiting for the status LED to turn green again and
-then try to connect to the unit again.
-
-If the unit becomes completely unreachable then go to the section at the end
-of this document titled "Revert to original firmware".
-
+    
+    
 ### Customize the system
 #### Change the root and "sc" user passwords
 The first, and most important order of business is to change the default
@@ -366,176 +380,22 @@ the following commands
 
     rm /rfs.squashfs
     
-At this point the basic Debian system is ready. Users may now install
-Debian Linux tools and services as they see fit. 
+At this point the basic Debian system is ready. Customizations may
+now be performed including adding users, installing services and
+so forth.
 
-If you plan on installing a web server on the unit then another recommended
-step is to disable the temporary web server that displays the text message
-indicating that Debian has been installed.
+If you plan on installing a web server or web management system on the unit
+then you'll need to disable the temporary status display web server which is
+currently running on http port 80.
 
-systemctl disable whatever
+    systemctl disable sc-statuspage
 
 ## Install Other Services (Optional)
 Here are some brief notes about installing some other services on the unit.
 
-### Samba - File sharing server
-In this section we install and configure an example Samba file sharing 
-service. This example service has a Public folder (as on the Seagate Central).
-We also allow user's home directories to be accessible via samba using the
-user's login password, and we publish a special "Backup" folder that
-can only be accessed with a password.
-
-All commands are executed as the root user or with the sudo prefix.
-
-Install the samba file sharing software as follows
-
-    apt-get install samba
-    
-Next, create the directories that are going to be shared. The example
-commands below assume that the large Data partition is mounted at /Data
-
-    # Allow all valid users on the system to access and modify
-    # files in the Public directory but not to delete or
-    # rename them unless they own them.
-    mkdir /Data/Public
-    chmod 1777 /Data/Public
-    
-    # We'll assign the "sc" user owner of the backup directory
-    mkdir /Data/backup
-    chown sc:sc /Data/backup/
-    
-Unlike on the Seagate Central, the samba file sharing passwords
-do not have to be the same as the unix login passwords. To 
-change the samba file sharing password users must use the "smbpasswd"
-command.
-
-Initially, the root user needs to create a samba account for any users
-that wish to have a samba file share. In the example below we create a
-samba account with the "smbpasswd -a username" command. We also specify
-a password for new accounts. We create an account for existing Unix user "sc"
-and an account for for the "backup" samba user which does not have a
-Unix account on this machine.
-
-    root@SC-Debian:~# smbpasswd -a sc
-    New SMB password: MyFileSharePassword_sc
-    Retype new SMB password: MyFileSharePassword_sc
-    
-    root@SC-Debian:~# smbpasswd -a backup
-    New SMB password: PasswordForBackupShare
-    Retype new SMB password: PasswordForBackupShare
-
-Users can now use the "smbpasswd" command to change their samba file sharing
-password in the same way that they would use the "passwd" command to change
-their unix login password.
-
-The samba configuration is stored in the /etc/samba/smb.conf file.
-Backup the original configuration file and create a new file contents
-as seen below. The parameters used are based on those in the original
-Seagate Central firmware, so hopefully the file sharing service should
-behave in a similar way.
-
-    cp /etc/samba/smb.conf /etc/samba/smb.conf.orig
-    cat << EOF > /etc/samba/smb.conf
-    # Samba configuration file
-    
-    [global]
-        workgroup = WORKGROUP
-        deadtime = 15
-        load printers = No
-        log file = /var/log/samba/log.%m
-        logging = file
-        map to guest = Bad User
-        max log size = 1000
-        obey pam restrictions = Yes
-        pam password change = Yes
-        panic action = /usr/share/samba/panic-action %d
-        passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
-        passwd program = /usr/bin/passwd %u
-        server role = standalone server
-        server string = Seagate Central Debian Shared Storage
-        unix password sync = Yes
-        usershare allow guests = Yes
-        wins support = Yes
-        fruit:model = RackMac
-        fruit:time machine = yes
-        idmap config * : backend = tdb
-        delete veto files = Yes
-        hide files = /.*/Network Trash Folder/Temporary Items/
-        use sendfile = Yes
-        veto files = /.AppleDesktop/.AppleDouble/.bashrc/.profile/
-        vfs objects = catia fruit streams_xattr
-
-    [Public]
-        comment = Public
-        force group = nogroup
-        force user = nobody
-        path = /Data/Public
-        browsable = yes
-        read only = no
-        
-    # If you'd like user's home directories to be
-    # accessible via samba then add this section
-    [homes]
-        comment = Home Directories
-    # You may or may not want these to be browseable.
-        browseable = Yes
-        create mask = 0700
-        directory mask = 0700
-        valid users = %S
-        
-    # This is an example of a samba user that is not also
-    # a unix user. Tha
-    [backup]
-        comment = Network Backup Folder
-        create mask = 0700
-        directory mask = 0700
-        valid users = backup
-        path = /Data/backup
-     # Specify a username here that owns the path above
-        force user = sc
-         
-The configuration parameters given are based on those in the original
-Seagate Central firmware, so hopefully the file sharing service should
-behave in a similar way.
-
-The server can now be accessed by entering "\\server-name\Public" or
-"\\server-name\sc" in the Windows Explorer folder name field.
-
-#### Optional - Make samba discoverable by Windows Explorer
-Although the samba file sharing service is now accessable, it won't be
-automatically discoverable by Windows explorer. 
-
-If you'd like your server to be automatically discoverable using the
-Windows explorer "Network" window then you'll also need to install a tool
-called "wsdd" (Web Services Dynamic Discovery). This tool is not natively
-available in the Debian Bullseye software repository at the time of writing
-but can be installed as per the documentation at the tool's homepage.
-
-https://github.com/christgau/wsdd
-
-First, install the "wget" tool if it hasn't already been installed.
-
-     apt-get install wget
-
-Install the wsdd tool as follows.  
-
-CHECK THAT GPG IS ALREADY INSTALLED. I THINK IT IS.
-
-    wget -O- https://pkg.ltec.ch/public/conf/ltec-ag.gpg.key | gpg --dearmour > /usr/share/keyrings/wsdd.gpg
-    source /etc/os-release
-    echo "deb [signed-by=/usr/share/keyrings/wsdd.gpg] https://pkg.ltec.ch/public/ ${UBUNTU_CODENAME:-${VERSION_CODENAME:-UNKNOWN}} main" > /etc/apt/sources.list.d/wsdd.list
-    apt update
-    
-Activate the wsdd tool as follows
-
-     systemctl start wsdd
-     
-After activating wsdd the server should be automatically detectable in the
-Windows Explorer Network view.
-
-#### Creating a Public folder
-
-
+## samba file sharing
+There is a seperate document called HOWTO-Samba-File-Sharing.md in this
+project that discusses setting up a simple samba file sharing service.
 
 ### Webmin - Simple web based administration tool
 It is possible to install the "webmin" web based management tool with Debian
