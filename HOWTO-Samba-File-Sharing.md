@@ -23,8 +23,8 @@ order of about 200 MB of space on the root partition.
 ## Preparation of directories and users   
 Create the "Public" and "sc-backup" directories that are going to be shared. 
 In the example below we assume that the large Data partition is mounted at
-/Data . The Public directory will be accessible by any user, including "guests"
-but the "sc-backup" directory will only be accessible by user "sc".
+/Data . The Public directory will be accessible by any user, including anonymous
+guests but the "sc-backup" directory will only be accessible by user "sc".
 
     mkdir /Data/Public
     chown nobody:nogroup /Data/Public
@@ -137,17 +137,23 @@ The server is now serving the following folders
 \\server-name\sc - The "sc" user's home directory (password protected)
 \\server-name\sc-backup - The "sc" user's backup storage directory (password protected)
 
-You should be able to 
+These file shares can be accessed by specifying either the name
+of the server or the IP address of the server. For example
+"\\server-name\Public"  or "\\192.168.1.58\Public" 
 
-#### Optional - Make samba discoverable by Windows Explorer
-Although the samba file sharing service is now accessable, it won't be
-automatically discoverable by Windows explorer. 
+#### Optional - samba not discoverable by Windows Explorer
+Although the samba file sharing service is now accessable, it may not be
+automatically discoverable by Windows explorer. This is a consequence of
+the less secure SMBv1 being disabled in by default in Windows 10 and
+in the version of samba in Debian. (Seagate Central native firmware
+still uses SMBv1.)
 
 If you'd like your server to be automatically discoverable using the
-Windows explorer "Network" window then you'll also need to install a tool
-called "wsdd" (Web Services Dynamic Discovery). This tool is not natively
-available in the Debian Bullseye software repository at the time of writing
-but can be installed as per the documentation at the tool's homepage.
+Windows explorer "Network" window then you may need to install a tool
+called "wsdd" (Web Services Dynamic Discovery) on the Seagate Central.
+This tool is not natively available in the Debian Bullseye software 
+repository at the time of writing but can be installed as per the
+documentation at the tool's homepage.
 
 https://github.com/christgau/wsdd
 
@@ -172,4 +178,22 @@ Activate the wsdd tool as follows
 After activating wsdd the server should be automatically detectable in the
 Windows Explorer Network view.
 
-#### Creating a Public folder
+## TODO (but probably not)
+Add instructions for creating "usershares" using the "sambashare" group
+
+https://wiki.archlinux.org/title/samba
+
+These allow users to publish and create their own shares without relying on
+the system administrator to reconfigure smb.conf
+
+
+Configure Avahi service announcement so that Mac clients can automatically discover
+a samba share.
+
+
+
+
+
+
+
+
