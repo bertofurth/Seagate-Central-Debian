@@ -1001,11 +1001,7 @@ Install the netcat tool and create the required scripts with the following comma
     # This script generates a simple status page continually
     # and pipes it into file /tmp/status/Click-For-Status.html
     mkdir -p  /tmp/status
-    echo -e "HTTP/1.1 200 OK
-    Content-Type: text/html; charset=UTF-8
-    Server: netcat
-    
-    <!doctype html>
+    echo -e "<!doctype html>
     <HTML>
     <HEAD>
     <TITLE>Debian for Seagate Central</TITLE>
@@ -1030,54 +1026,61 @@ Install the netcat tool and create the required scripts with the following comma
     </HTML>
     " > /tmp/status/View-System-Status.html;
     EOF
+    
     chmod u+x /usr/sbin/sc-generate-status.sh
     
     cat << EOF > /usr/sbin/sc-statuspage.sh
     #!/bin/bash
     # This script serves the file /tmp/status/Click-For-Status.html
     # as a web page via the netcat utility. Only one user at a time!
-    cat /tmp/status/View-System-Status.html | nc -l 80 > /dev/null;
+    echo -e "HTTP/1.1 200 OK
+    Content-Type: text/html; charset=UTF-8
+    Server: netcat
+
+    $(cat /tmp/status/View-System-Status.html)" | nc -l 80 > /dev/null;
     EOF
+
     chmod u+x /usr/sbin/sc-statuspage.sh
     
     # Create the systemd service files
     cat << EOF > /etc/systemd/system/sc-statuspage.service
     [Unit]
     Description=Serve status webpage on port 80
-    After=multi-user.target
-    Requires=sc-generate-status.timer
+    Requires=network-online.target
+    After=network-online.target
 
     [Service]
-    ExecStart=/bin/bash /usr/sbin/sc-statuspage.sh 
+    ExecStart=/bin/bash /usr/sbin/sc-statuspage.sh
     Restart=always
     RuntimeMaxSec=30s
-    
+
     [Install]
     WantedBy=multi-user.target
     EOF
     
     cat << EOF > /etc/systemd/system/sc-generate-status.service
     [Unit]
-    Description=Generate Debian for Seagate Central status webpage
+    Description=Generate status webpage content
 
     [Service]
     Type=oneshot
-    ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh     
+    ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh
     EOF
     
     cat << EOF > /etc/systemd/system/sc-generate-status.timer
-    [Unit]
     Description=Periodically generate status webpage
+    Requires=network-online.target
+    After=network-online.target
 
     [Timer]
-    OnUnitActiveSec=180s
+    OnUnitActiveSec=60s
     OnBootSec=10s
 
     [Install]
     WantedBy=timers.target
     EOF
     
-    # Enable the new service in systemd
+    # Enable the new services in systemd
     systemctl start sc-generate-status.timer
     systemctl start sc-statuspage
     systemctl enable sc-generate-status.timer
@@ -1224,7 +1227,6 @@ https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=998668
 Hopefully in the future as the installer image is updated the "anna" tool will
 also be updated.
 
-
 ## Troubleshooting
 In some rare cases after a major upgrade the ethernet interface can fail
 to operate properly unless the unit is power cycled. If network connectivity
@@ -1232,9 +1234,3 @@ is lost at any stage after a reboot or after the Debian installation process
 then shutdown with the "shutdown -h now" command via the serial console and
 then physically power cycle the unit.
 
-## TODO (but probably not)
-It wouldn't be hard make another upgrade image with an active samba service
-already running, but the instruction in the HOWTO-Samba-File-Sharing.md are
-quite easy to follow. An extra benefit of having a samba service already running
-is that it would make it much easier for users to find the IP address
-of the unit once it has upgraded.
