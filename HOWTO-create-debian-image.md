@@ -999,8 +999,8 @@ Install the netcat tool and create the required scripts with the following comma
     # This script generates a simple status page continually
     # and pipes it into file /tmp/status/Click-For-Status.html
     mkdir -p  /tmp/status
-    rm -f /tmp/status/System-Status.html
-    mkfifo /tmp/status/System-Status.html
+    rm -f /tmp/status/View-System-Status.html
+    mkfifo /tmp/status/View-System-Status.html
     while true; do {
     echo -e "HTTP/1.1 200 OK
     Content-Type: text/html; charset=UTF-8
@@ -1024,18 +1024,20 @@ Install the netcat tool and create the required scripts with the following comma
     Debian for Seagate Central project homepage</a>
     </BODY>
     </HTML>
-    " > /tmp/status/Click-For-Status.html; }
+    " > /tmp/status/View-System-Status.html; }
     done
     EOF
+    chmod u+x /usr/sbin/sc-generate-status.sh
     
     cat << EOF > /usr/sbin/sc-statuspage.sh
     #!/bin/bash
     # This script serves the file /tmp/status/Click-For-Status.html
     # as a web page via the netcat utility
     while true; do {
-    cat /tmp/status/Click-For-Status.html | nc -4 -6 -l 80 > /dev/null; }
+    cat /tmp/status/View-System-Status.html | nc -4 -6 -l 80 > /dev/null; }
     done
     EOF
+    chmod u+x /usr/sbin/sc-statuspage.sh
     
     # Create the systemd service files
     cat << EOF > /etc/systemd/system/sc-statuspage.service
