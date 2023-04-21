@@ -1016,6 +1016,8 @@ Install the netcat tool and create the required scripts with the following comma
     <H2>
     Please connect to the unit's IP address $(hostname -I | cut -d ' ' -f1) via ssh to configure. </H2>
     <tt>
+    Unit Serial Number: $(fw_printenv -n serialNo) <br>
+    Unit MAC Address: $(cat /sys/class/net/eth0/address)  <br>
     Hostname: $(hostname) <br>
     All IP addresses: $(hostname -I)  <br>
     System Time: $(date) <br>
