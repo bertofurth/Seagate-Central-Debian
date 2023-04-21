@@ -1096,8 +1096,9 @@ Install the netcat tool and create the required scripts with the following comma
     systemctl enable sc-generate-status.timer
     systemctl enable sc-statuspage
     
-Users should disable the "sc-statuspage" service if they plan on installing 
-a proper web server on the unit.
+Note that users installing Debian should disable the "sc-statuspage"
+service once the unit is operational if they plan on installing a
+proper web server on the unit.
 
 ### Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
