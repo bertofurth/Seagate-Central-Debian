@@ -1057,14 +1057,16 @@ Install the netcat tool and create the required scripts with the following comma
     After=multi-user.target
 
     [Service]
-    ExecStart=/bin/bash /usr/sbin/sc-statuspage.sh 
+    ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh 
     
     [Install]
     WantedBy=multi-user.target
     EOF
     
     # Enable the new service in systemd
+    systemctl start sc-generate-status
     systemctl start sc-statuspage
+    systemctl enable sc-generate-status
     systemctl enable sc-statuspage
     
 Users should disable the "sc-statuspage" service if they plan on installing 
