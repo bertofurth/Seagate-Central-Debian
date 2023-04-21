@@ -1006,13 +1006,13 @@ Install the netcat tool and create the required scripts with the following comma
 
     cat << "EOF" > /usr/sbin/sc-generate-status.sh
     #!/bin/bash
-    # This script generates a simple status page 
+    # This script generates a simple status page
     # but only if the unit has an ipv4 address
     until [[ $(ip address show eth0 | grep "inet ") ]]
     do
      sleep 5
     done
-    
+
     while true
     do
      mkdir -p  /tmp/status
@@ -1020,23 +1020,28 @@ Install the netcat tool and create the required scripts with the following comma
     <HTML>
     <HEAD>
     <TITLE>Debian for Seagate Central</TITLE>
+    <meta http-equiv=\"refresh\" content=\"13\">
     </HEAD>
     <BODY>
     <H1>
     Debian for Seagate Central NAS is running on this device</H1>
     <H2>
     Please connect to the unit's IP address $(hostname -I | cut -d ' ' -f1) via ssh to configure. </H2>
-    <tt>
-    Unit Serial Number: $(fw_printenv -n serialNo) <br>
-    Unit MAC Address: $(cat /sys/class/net/eth0/address)  <br>
-    Hostname: $(hostname) <br>
-    All IP addresses: $(hostname -I)  <br>
-    System Time: $(date) <br>
-    System Uptime:  $(uptime -p) <br>
-    Root Partition Disk Usage: <br>
-    $(df -h / | grep Filesystem) <br>
-    $(df -h / | grep -v Filesystem) <br>
-    </tt> <br>
+    <pre>
+    Unit Serial Number: $(fw_printenv -n serialNo)
+    Unit MAC Address: $(cat /sys/class/net/eth0/address)
+    Hostname: $(hostname)
+    IP addresses: $(hostname -I)
+    System Time: $(date)
+    Uptime:
+    $(uptime)
+
+    Disk Usage:
+    $(df -h -x tmpfs -x devtmpfs)
+
+    Memory Usage:
+    $(free -h)
+    </pre> <br>
     <a href='https://github.com/bertofurth/Seagate-Central-Debian'>
     Debian for Seagate Central project homepage</a>
     </BODY>
@@ -1053,7 +1058,7 @@ Install the netcat tool and create the required scripts with the following comma
     # This script serves the status page via the netcat utility. 
     until [ -f /tmp/status/View-System-Status.html ]
     do
-        sleep 5
+     sleep 5
     done
 
     while true
