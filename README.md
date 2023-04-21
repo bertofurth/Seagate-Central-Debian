@@ -1,10 +1,10 @@
 # Debian for Seagate Central NAS
-This is a procedure for installing a basic Debian Linux system 
-on a Seagate Central NAS.
+This is a procedure for installing a Debian Linux system on a
+Seagate Central NAS.
 
-Note that these instructions are designed to get the unit to the
-point of having a very basic Debian based Linux operating system 
-with a working ssh service installed.
+These instructions are designed to get the unit to the point of having
+a very basic Debian based Linux operating system with a working
+ssh service installed.
 
 It is assumed that users embarking on this upgrade process have some
 familiarity with the basics of operating and maintaining a Debian based
@@ -27,9 +27,12 @@ or in a system that people's health or safety depends on.**
 **This procedure will overwrite any data or settings on the unit being
 worked on. Be sure to backup any important data before proceeding.**
 
+**This project is not endorsed or supported by the original vendors or
+manufacturers of the Seagate Central NAS.**
+
 ## TLDNR
-* Obtain a Debian for Seagate Central upgrade image
-* Install the upgrade image using the Seagate Central Web Management page
+* Obtain a Debian for Seagate Central upgrade image (see Releases)
+* Install image using the Seagate Central Web Management page
 * Establish an ssh connection to the unit (username "sc", default pw "SCDebian2022")
 * Elevate to root with the "su -" command (root default pw "SCDebian2022")
 * Perform system customization (passwords, hostname, timezone etc)
