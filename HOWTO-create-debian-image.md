@@ -804,7 +804,7 @@ two kernels with the following commands issued as the root user.
     mkdir /kernel
     cp /tmp/sda1/uImage /kernel/uImage.4k.nosmp
     cp /tmp/sda1/uImage.4k /kernel/uImage.4k
-    cat << EOF > /kernel/README.txt
+    cat << "EOF" > /kernel/README.txt
     This directory contains two Linux kernel images that can be used
     for Debian on the Seagate Central.
     
@@ -851,7 +851,7 @@ environment variables should now been installed. We need to create the configura
 for these tools (/etc/fw_env.config) by issuing the following commands on the Seagate
 Central as root.
 
-    cat << EOF > /etc/fw_env.config 
+    cat << "EOF" > /etc/fw_env.config 
     # MTD device name       Device offset   Env. size       Flash sector size       Number of sectors
     /dev/mtd1               0x0000          0x8000          0x1000
     /dev/mtd2               0x0000          0x8000          0x1000
