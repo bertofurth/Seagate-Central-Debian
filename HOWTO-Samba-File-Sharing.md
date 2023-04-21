@@ -61,7 +61,7 @@ Seagate Central firmware, so hopefully the file sharing service should
 behave in a similar way. 
 
     cp /etc/samba/smb.conf /etc/samba/smb.conf.orig
-    cat << EOF > /etc/samba/smb.conf
+    cat << "EOF" > /etc/samba/smb.conf
     # Samba configuration file
     
     [global]
@@ -214,7 +214,7 @@ Next, we need to create an avahi service configuration file describing
 the samba service. These service configuration files are used to advertise
 services available on the system.
 
-    cat << EOF > /etc/avahi/services/samba.service
+    cat << "EOF" > /etc/avahi/services/samba.service
     <?xml version="1.0" standalone='no'?><!--*-nxml-*-->
     <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
 
