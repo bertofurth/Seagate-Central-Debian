@@ -105,7 +105,7 @@ use a default of 9600 or 115200.
 
 If the circuit board is not fitted into the chassis try to only keep the 
 board powered on for short bursts of time because the CPU will not be connected
-to it's heatsink.
+to its heatsink.
 
 Once you've confirmed that the serial console is working, reassemble the unit
 and install the hard drive but there's no need to put the plastic cover back 
@@ -1125,7 +1125,7 @@ in the upgrade image.
     journalctl --vacuum-time=1s
     rm -rf /var/log/*
 
-Disable the dhcp client and delete it's lease so that it does not try to ask
+Disable the dhcp client and delete its lease so that it does not try to ask
 for that IP address again. Note that these commands will disconnect any network or
 ssh sessions to the unit so should be issued on the serial console.
 
