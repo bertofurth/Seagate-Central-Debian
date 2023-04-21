@@ -1014,15 +1014,16 @@ Install the netcat tool and create the required scripts with the following comma
     <H1>
     Debian for Seagate Central NAS is running on this device</H1>
     <H2>
-    Please connect to the unit's IP address via ssh to configure. </H2>
-    <H3>
-    Hostname: $(hostname) <br> <br>
-    IP addresses: $(hostname -I) <br> <br>
+    Please connect to the unit's IP address $(hostname -I | cut -d ' ' -f1) via ssh to configure. </H2>
+    <tt>
+    Hostname: $(hostname) <br>
+    All IP addresses: $(hostname -I)  <br>
     System Time: $(date) <br>
-    System Uptime: $(uptime) <br>
-    Disk Usage: <br>
-    $(df -x tmpfs -x devtmpfs) <br>
-    </H3>
+    System Uptime:  $(uptime -p) <br>
+    Root Partition Disk Usage: <br>
+    $(df -h / | grep Filesystem) <br>
+    $(df -h / | grep -v Filesystem) <br>
+    </tt> <br>
     <a href='https://github.com/bertofurth/Seagate-Central-Debian'>
     Debian for Seagate Central project homepage</a>
     </BODY>
@@ -1034,7 +1035,7 @@ Install the netcat tool and create the required scripts with the following comma
     cat << EOF > /usr/sbin/sc-statuspage.sh
     #!/bin/bash
     # This script serves the file /tmp/status/Click-For-Status.html
-    # as a web page via the netcat utility
+    # as a web page via the netcat utility. Only one user at a time!
     cat /tmp/status/View-System-Status.html | nc -l 80 > /dev/null;
     EOF
     chmod u+x /usr/sbin/sc-statuspage.sh
