@@ -1121,6 +1121,8 @@ which can consume a large amount of space. We don't need to include these
 in the upgrade image.
     
     apt-get clean
+    journalctl --rotate
+    journalctl --vacuum-time=1s
     rm -rf /var/log/*
 
 Disable the dhcp client and delete it's lease so that it does not try to ask
