@@ -966,18 +966,22 @@ of the fstab file to include the large Data partition and possibly the
 ### Customize dhcp client configuration in /etc/dhcp/dhclient.conf
 Here we modify the default dhcp client configuration to make it more
 likely that the unit gets the same DHCP assigned IP address as when
-it was running Seagate Central native firmware. This is done by setting
-the dhcp-client-identifier to the same value as in Seagate Central native
-firmware. This makes it easier for the user to be able to reconnect to
-the unit after the upgrade. Make this modification with the following command.
+it was running Seagate Central native firmware. This makes it easier
+for the user to reconnect to the unit after the upgrade.
 
+The change made by sets the dhcp-client-identifier to the same
+value as in Seagate Central native firmware. Make this modification 
+with the following commands
+
+    cp /etc/dhcp/dhclient.conf /etc/dhcp/dhclient.conf.orig
     echo "send dhcp-client-identifier = hardware;" >> /etc/dhcp/dhclient.conf
 
-Unfortunately, depending on the DHCP server software and configuration, the
+Unfortunately, depending on the DHCP server software in a user's network, the
 unit may still end up with a different IP address after it boots up
 the Debian operating system. In addition, if a user has configured their 
 Seagate Central to use a static IP address, then the unit will almost certainly
-come up with a different DHCP assigned IP address. 
+come up with a different DHCP assigned IP address. This may make it
+difficult for the user to reconnect to the unit after it is upgraded.
 
 ### System status webpage
 This step sets up the unit to display a very simple system status web page
@@ -1045,7 +1049,7 @@ Install the netcat tool and create the required scripts with the following comma
     # Create the systemd service files
     cat << EOF > /etc/systemd/system/sc-statuspage.service
     [Unit]
-    Description=Serve status webpage on port 80
+    Description=Simple status webpage
     Requires=network-online.target
     After=network-online.target
 
@@ -1060,7 +1064,7 @@ Install the netcat tool and create the required scripts with the following comma
     
     cat << EOF > /etc/systemd/system/sc-generate-status.service
     [Unit]
-    Description=Generate status webpage content
+    Description=Generate status webpage
 
     [Service]
     Type=oneshot
@@ -1068,7 +1072,7 @@ Install the netcat tool and create the required scripts with the following comma
     EOF
     
     cat << EOF > /etc/systemd/system/sc-generate-status.timer
-    Description=Periodically generate status webpage
+    Description=Generate status webpage timer
     Requires=network-online.target
     After=network-online.target
 
@@ -1095,7 +1099,7 @@ it comes up as before with no significant errors in the console
 bootup logs. Once the login prompt reappears, log back in as the root
 user.
 
-### Clean cached files and power off the Seagate Central 
+### Clean up files and power off the Seagate Central 
 After confirming that the unit has successfully rebooted, run the following 
 commands to clear the disk of any cached Debian repository files and logs
 which can consume a large amount of space. We don't need to include these
@@ -1104,6 +1108,12 @@ in the upgrade image.
     apt-get clean
     rm -rf /var/log/*
 
+Disable the dhcp client and delete it's lease so that it does not try to ask
+for that IP address again.
+
+    /sbin/dhclient -r -4 -v -i -pf /run/dhclient.eth0.pid -lf /var/lib/dhcp/dhclient.eth0.leases -I -df /var/lib/dhcp/dhclient6.eth0.leases eth0
+    rm /var/lib/dhcp/*.leases
+    
 Shutdown the unit in preparation to take a snapshot of the disk image.
 
     shutdown -h now
