@@ -1006,10 +1006,17 @@ Install the netcat tool and create the required scripts with the following comma
 
     cat << "EOF" > /usr/sbin/sc-generate-status.sh
     #!/bin/bash
-    # This script generates a simple status page continually
-    # and pipes it into file /tmp/status/Click-For-Status.html
-    mkdir -p  /tmp/status
-    echo -e "<!doctype html>
+    # This script generates a simple status page 
+    # but only if the unit has an ipv4 address
+    until [[ $(ip address show eth0 | grep "inet ") ]]
+    do
+     sleep 5
+    done
+    
+    while true
+    do
+     mkdir -p  /tmp/status
+     echo -e "<!doctype html>
     <HTML>
     <HEAD>
     <TITLE>Debian for Seagate Central</TITLE>
@@ -1034,20 +1041,29 @@ Install the netcat tool and create the required scripts with the following comma
     Debian for Seagate Central project homepage</a>
     </BODY>
     </HTML>
-    " > /tmp/status/View-System-Status.html;
+    " > /tmp/status/View-System-Status.html
+     sleep 10
+    done
     EOF
     
     chmod u+x /usr/sbin/sc-generate-status.sh
     
     cat << "EOF" > /usr/sbin/sc-statuspage.sh
     #!/bin/bash
-    # This script serves the file /tmp/status/Click-For-Status.html
-    # as a web page via the netcat utility. Only one user at a time!
-    echo -e "HTTP/1.1 200 OK
+    # This script serves the status page via the netcat utility. 
+    until [ -f /tmp/status/View-System-Status.html ]
+    do
+        sleep 5
+    done
+
+    while true
+    do
+     echo -e "HTTP/1.1 200 OK
     Content-Type: text/html; charset=UTF-8
     Server: netcat
 
-    $(cat /tmp/status/View-System-Status.html)" | nc -l 80 > /dev/null;
+    $(cat /tmp/status/View-System-Status.html)" | timeout 5 nc -l 80 > /dev/null;
+    done
     EOF
 
     chmod u+x /usr/sbin/sc-statuspage.sh
@@ -1062,7 +1078,6 @@ Install the netcat tool and create the required scripts with the following comma
     [Service]
     ExecStart=/bin/bash /usr/sbin/sc-statuspage.sh
     Restart=always
-    RuntimeMaxSec=30s
 
     [Install]
     WantedBy=multi-user.target
@@ -1071,29 +1086,21 @@ Install the netcat tool and create the required scripts with the following comma
     cat << "EOF" > /etc/systemd/system/sc-generate-status.service
     [Unit]
     Description=Generate status webpage
-
-    [Service]
-    Type=oneshot
-    ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh
-    EOF
-    
-    cat << "EOF" > /etc/systemd/system/sc-generate-status.timer
-    Description=Generate status webpage timer
     Requires=network-online.target
     After=network-online.target
 
-    [Timer]
-    OnUnitActiveSec=60s
-    OnBootSec=10s
-
-    [Install]
-    WantedBy=timers.target
-    EOF
+    [Service]
+    ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh
+    Restart=always
     
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+        
     # Enable the new services in systemd
-    systemctl start sc-generate-status.timer
+    systemctl start sc-generate-status
     systemctl start sc-statuspage
-    systemctl enable sc-generate-status.timer
+    systemctl enable sc-generate-status
     systemctl enable sc-statuspage
     
 Note that users installing Debian should disable the "sc-statuspage"
