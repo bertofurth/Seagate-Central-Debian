@@ -2,9 +2,9 @@
 This is a procedure for installing a basic Debian Linux system 
 on a Seagate Central NAS.
 
-Note that these instructions only get the unit to the point of having a
-a very basic Debian based Linux operating system with a working ssh
-service. 
+Note that these instructions are designed to get the unit to the
+point of having a very basic Debian based Linux operating system 
+with a working ssh service installed.
 
 It is assumed that users embarking on this upgrade process have some
 familiarity with the basics of operating and maintaining a Debian based
@@ -30,8 +30,8 @@ worked on. Be sure to backup any important data before proceeding.**
 ## TLDNR
 * Obtain a Debian for Seagate Central upgrade image
 * Install the upgrade image using the Seagate Central Web Management page
-* Establish an ssh connection to the unit (username "sc", password "SCDebian2022")
-* Elevate to root with the "su -" command (root password "SCDebian2022")
+* Establish an ssh connection to the unit (username "sc", default pw "SCDebian2022")
+* Elevate to root with the "su -" command (root default pw "SCDebian2022")
 * Perform system customization (passwords, hostname, timezone etc)
 * Format and mount the large Data partition
 * Cleanup
@@ -103,7 +103,7 @@ In some cases, depending on your local DHCP server configuration, the unit may
 come back up with the same DHCP assigned IP address it had while running Seagate
 Central native firmware. If this is the case then you should see a message appear
 in your browser indicating that the unit has upgraded to Debian and what
-the unit's IP address is.
+the unit's new IP address is.
 
 If no such status message appears or if the unit's IP address appears to have
 changed then the first thing to try is to type the following URL in you browser 
@@ -185,19 +185,25 @@ commands to set new passwords as per the following example
     Retype new password: YourNewUserPassword
     passwd: password updated successfully
 
-#### Change the system hostname
-The default system hostname is set to "SC-debian", however you may
-wish to change it to something more meaningful. If you
-wish to change the system hostname, it is strongly suggested that you
-change it before installing any more tools or utilities. 
+#### Change the system hostname and regenerate keys
+The default system hostname is set to "SC-debian", however you should
+change this to something more meaningful. If you wish to change the
+system hostname, it is strongly suggested that you change it before
+installing any more tools or utilities. You should also regenerate
+the ssh security keys for your system.
 
-This can be done with the following commands issued as root
+The system hostname can be changed from "SC-debian" to a new host name
+with the following commands issued as root.
 
     hostnamectl set-hostname YourNewHostName
-    sed -i 's/SC-debian/YourNewHostName/g' /etc/hosts /etc/ssh/*.pub
+    sed -i 's/SC-debian/YourNewHostName/g' /etc/hosts 
+    rm /etc/ssh/*key*
+    ssh-keygen -A
     
 You will need to log out and log back in to your ssh session before
-you see the hostname changed in your command prompt.
+you see the hostname changed in your command prompt. Your ssh client
+may complain that the hosts's keys have changed. You should accept
+the new keys.
 
 #### Configure the local timezone and time
 By default, the system will be set to the North America/Pacific timezone.
@@ -475,7 +481,7 @@ utility to make sure that certain processes do not consume too much CPU load
 in order reduce CPU temperatures but this is beyond the scope of this procedure.
 
 Our tests showed that if the default non SMP CPU is run for many hours at high CPU
-loads then the system appears to run stabily.
+loads then the system appears to run stably.
 
 That being said, an advanced user may wish to take the "risk" of running
 the more high performance but potentially less reliable SMP version
@@ -665,7 +671,7 @@ Central. We delete partitions 4 through 6 and then reconstruct them.
     old_desc_blocks = 1, new_desc_blocks = 1
     The filesystem on /dev/sda4 is now 786432 (4k) blocks long.
 
-    # View the new partition layout. Note that parititon 4 is
+    # View the new partition layout. Note that partititon 4 is
     # now 3GB in size.
     root@SC-debian:~# /sbin/fdisk -l /dev/sda
     Disk /dev/sda: 3.64 TiB, 4000787030016 bytes, 7814037168 sectors
