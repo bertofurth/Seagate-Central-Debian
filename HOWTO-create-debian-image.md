@@ -1115,7 +1115,8 @@ in the upgrade image.
     rm -rf /var/log/*
 
 Disable the dhcp client and delete it's lease so that it does not try to ask
-for that IP address again.
+for that IP address again. Note that these commands will disconnect any network or
+ssh sessions to the unit so should be issued on the serial console.
 
     /sbin/dhclient -r -4 -v -i -pf /run/dhclient.eth0.pid -lf /var/lib/dhcp/dhclient.eth0.leases -I -df /var/lib/dhcp/dhclient6.eth0.leases eth0
     rm /var/lib/dhcp/*.leases
