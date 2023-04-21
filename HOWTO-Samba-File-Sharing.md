@@ -100,7 +100,7 @@ behave in a similar way.
         force group = nobody
         force user = nobody
         path = /tmp/status
-        broseable = yes
+        browseable = yes
         read only = yes
         
     [Public]
