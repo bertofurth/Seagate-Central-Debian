@@ -884,7 +884,7 @@ Create these boot scripts and associated systemd service files with the followin
 commands issued as root on the Seagate Central.
 
     # Create the startup script
-    cat << EOF > /usr/sbin/sc-bootup.sh
+    cat << "EOF" > /usr/sbin/sc-bootup.sh
     #!/bin/bash
     echo Performing Seagate Central Specific Startup
     echo Setting status LED to solid green
