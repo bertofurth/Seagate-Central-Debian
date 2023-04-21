@@ -7,7 +7,7 @@ samba file sharing service on the Debian for Seagate Central system.
 
 The example used will share a Public folder (as on the native 
 Seagate Central), share user's password protected home directories
-and publish another seperate folder for the sc user. The example
+and publish another separate folder for the sc user. The example
 will also publish a special "status" folder that contains a dynamically
 generated web page that will show users the IP address of the system.
 
@@ -19,7 +19,7 @@ Install the samba file sharing software as follows
 
     apt-get install samba
     
-The installation of this package and it's dependancies will consume in the
+The installation of this package and it's dependencies will consume in the
 order of about 200 MB of space on the root partition.
 
 ## Preparation of directories and users   
@@ -61,7 +61,7 @@ The samba configuration is stored in the /etc/samba/smb.conf file.
 Backup the original configuration file and create a new file contents
 as seen below. The parameters used are based on those in the original
 Seagate Central firmware, so hopefully the file sharing service should
-behave in a similar way.
+behave in a similar way. 
 
     cp /etc/samba/smb.conf /etc/samba/smb.conf.orig
     cat << EOF > /etc/samba/smb.conf
@@ -94,17 +94,16 @@ behave in a similar way.
         veto files = /.AppleDesktop/.AppleDouble/.bashrc/.profile/
         vfs objects = catia fruit streams_xattr
     
-    [Status]
-        comment = Publically viewable status folder
+    [status]
+        comment = Read only system status folder
         guest ok = yes
-        force group = nobody
         force user = nobody
         path = /tmp/status
         browseable = yes
         read only = yes
-        
+            
     [Public]
-        comment = Public Folder. Anyone can read, write and delete files here.
+        comment = Public Folder. Anyone can use this folder.
         guest ok = yes
         force group = nogroup
         force user = nobody
@@ -144,11 +143,12 @@ restart the samba service as follows.
 After any changes are made to the /etc/samba/smb.conf configuration file
 the above commands should be issued.
 
-The server is now serving the following folders
+The samba server should now be sharing the following folders.
 
-\\server-name\Public - Public folder accessible by anyone
-\\server-name\sc - The "sc" user's home directory (password protected)
+\\server-name\Public - Public folder accessible by anyone.
+\\server-name\sc - The "sc" user's home directory (password protected and hidden)
 \\server-name\sc-backup - The "sc" user's backup storage directory (password protected)
+\\server-name\status - A folder containing a dynamically generated html file with the system status
 
 These file shares can be accessed from your client by specifying either the
 name of the server or the IP address of the server. For example
@@ -157,16 +157,16 @@ name of the server or the IP address of the server. For example
 ## Optional - Make samba discoverable by Windows Explorer
 Although the samba file sharing service is now operational, it may not be
 automatically discoverable by Windows explorer. This is a consequence of
-the less secure SMBv1 protocol being disabled by default in Windows 10, in
-modern samba software and most other modern clients. Seagate Central
-native firmware still uses the insecure SMBv1 protocol and may therefore
-be more easily automatically detectable.
+the less secure SMBv1 protocol being disabled by default in Windows 10 in 
+and most other modern clients. Unfortunately, Seagate Central native 
+firmware still uses the insecure SMBv1 protocol and may therefore be 
+more easily detectable.
 
 If you'd like your server to be automatically discoverable using the
 Windows explorer "Network" view then you may need to install a tool
-called "wsdd" (Web Services Dynamic Discovery) on the Seagate Central.
-This tool is not natively available in the Debian Bullseye software 
-repository at the time of writing but can be installed as per the
+such as "wsdd" (Web Services Dynamic Discovery) on the Seagate Central.
+This particular tool is not natively available in the Debian Bullseye
+software repository at the time of writing but can be installed as per the
 documentation at the tool's homepage.
 
 https://github.com/christgau/wsdd
@@ -178,7 +178,7 @@ your system and you can uninstall it later if you wish.
      apt-get install wget
 
 Install the wsdd tool as follows. The "gpg" tool and most of the other
-dependancies of wssd should should already be installed as part of
+dependencies of wssd should already be installed as part of
 installing samba so installing this tool will not consume much
 extra space on the system.
 
@@ -202,7 +202,7 @@ code which is beyond the scope of this procedure. Hopefully, future
 versions of Debian will have a "wsdd2" package natively available for
 installation.
 
-## Optional - Make samba discoverable by Mac Finder
+## Optional - Make samba discoverable by Apple Mac Finder
 The Apple Macintosh series of devices uses the "Bonjour" service
 discovery protocol to automatically discover network resources. The
 open source "avahi" tool can be installed on the NAS to advertise the
@@ -243,27 +243,15 @@ check whether it's possible to advertise these new services to the Apple
 devices in your local network by adding another avahi service configuration 
 file.
 
- 
-
-
-
 ## TODO (but probably not)
-Add instructions for creating "usershares" using the "sambashare" group
+### usershares
+"usershares" allow users to publish and create their own samba shares without
+relying on the system administrator to modify smb.conf.
+
+There are comprehensive instructions in section 1.3.3 "Enable Usershares"
+of the following document
 
 https://wiki.archlinux.org/title/samba
-
-Sample command
-
-    net usershare add mytestshare ~/testshare/ "MY TEST SHARE" everyone:F guest_ok=y
-
-These "usershares" allow users to publish and create their own shares without relying on
-the system administrator to reconfigure smb.conf
-
-
-Configure Avahi service announcement so that Mac clients can automatically discover
-a samba share.
-
-
 
 
 
