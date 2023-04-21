@@ -161,8 +161,8 @@ documentation at the tool's homepage.
 https://github.com/christgau/wsdd
 
 First, install the "wget" package if it hasn't already been installed.
-It consumes about 1M of space but is a worthwhile utility to have on
-your system. (You can uninstall it later if you wish)
+It consumes about 4M of space but is a worthwhile utility to have on
+your system and you can uninstall it later if you wish.
 
      apt-get install wget
 
@@ -182,7 +182,7 @@ Activate the wsdd tool as follows
     systemctl start wsdd
      
 After activating "wsdd" the NAS should automatically appear in the Windows
-Explorere Network view for clients on the same local network.
+Explorer Network view for clients on the same local network.
 
 Note that there is another tool called "wsdd2" which also performs the
 same task as "wsdd" and is slightly more versatile and resource friendly
@@ -198,7 +198,7 @@ open source "avahi" tool can be installed on the NAS to advertise the
 samba service using this protocol.
 
 Install the avahi daemon as follows. Note that this will consume about
-5MB worth of space on your system.
+7MB worth of space on your system.
 
     apt-get install avahi-daemon
     
