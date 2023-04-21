@@ -1,7 +1,4 @@
 # HOWTO Samba File Sharing
-
-**WORK IN PROGRESS - NOT FINISHED**
-
 This document describes how to install and configure a simple
 samba file sharing service on the Debian for Seagate Central system.
 
@@ -238,8 +235,8 @@ the Apple devices on your local network
      
 The server should now appear in the "Network" view in the Finder tool.
 
-If you add other services to your NAS, such as a DLNA media server, then
-check whether it's possible to advertise these new services to the Apple
+If you add other services to your NAS then check the service documentation
+to see whether it's possible to advertise these new services to the Apple
 devices in your local network by adding another avahi service configuration 
 file.
 
