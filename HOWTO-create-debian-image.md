@@ -979,11 +979,11 @@ the Debian operating system. In addition, if a user has configured their
 Seagate Central to use a static IP address, then the unit will almost certainly
 come up with a different DHCP assigned IP address. 
 
-### Simple status web server
-This step sets up the unit to display a very simple status message when
-someone tries to access it on http port 80 via a web browser. This helps
+### System status webpage
+This step sets up the unit to display a very simple system status web page
+when someone tries to connect to the unit with a web browser. This helps
 users to see that the unit is no longer running Seagate Central native 
-firmware but that it is running Debian. 
+firmware but that it is running Debian instead.
 
 We use the netcat tool to generate a web page rather than a full blown web
 server as this only uses a small amount of disk and cpu resources. The webpage
@@ -1001,13 +1001,10 @@ Install the netcat tool and create the required scripts with the following comma
     # This script generates a simple status page continually
     # and pipes it into file /tmp/status/Click-For-Status.html
     mkdir -p  /tmp/status
-    rm -f /tmp/status/View-System-Status.html
-    mkfifo /tmp/status/View-System-Status.html
-    while true; do {
     echo -e "HTTP/1.1 200 OK
     Content-Type: text/html; charset=UTF-8
-    Server: netcat!
-
+    Server: netcat
+    
     <!doctype html>
     <HTML>
     <HEAD>
@@ -1021,14 +1018,16 @@ Install the netcat tool and create the required scripts with the following comma
     <H3>
     Hostname: $(hostname) <br> <br>
     IP addresses: $(hostname -I) <br> <br>
+    System Time: $(date) <br>
+    System Uptime: $(uptime) <br>
+    Disk Usage: <br>
+    $(df -x tmpfs -x devtmpfs) <br>
     </H3>
     <a href='https://github.com/bertofurth/Seagate-Central-Debian'>
     Debian for Seagate Central project homepage</a>
     </BODY>
     </HTML>
-    " > /tmp/status/View-System-Status.html; 
-    touch /tmp/status/View-System-Status.html; }
-    done
+    " > /tmp/status/View-System-Status.html;
     EOF
     chmod u+x /usr/sbin/sc-generate-status.sh
     
@@ -1045,7 +1044,7 @@ Install the netcat tool and create the required scripts with the following comma
     [Unit]
     Description=Serve status webpage on port 80
     After=multi-user.target
-    Requires=sc-generate-status.service
+    Requires=sc-generate-status.timer
 
     [Service]
     ExecStart=/bin/bash /usr/sbin/sc-statuspage.sh 
@@ -1059,19 +1058,28 @@ Install the netcat tool and create the required scripts with the following comma
     cat << EOF > /etc/systemd/system/sc-generate-status.service
     [Unit]
     Description=Generate Debian for Seagate Central status webpage
-    After=multi-user.target
 
     [Service]
-    ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh 
+    Type=oneshot
+    ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh     
+    EOF
     
+    cat << EOF > /etc/systemd/system/sc-generate-status.timer
+    [Unit]
+    Description=Periodically generate status webpage
+
+    [Timer]
+    OnUnitActiveSec=180s
+    OnBootSec=10s
+
     [Install]
-    WantedBy=multi-user.target
+    WantedBy=timers.target
     EOF
     
     # Enable the new service in systemd
-    systemctl start sc-generate-status
+    systemctl start sc-generate-status.timer
     systemctl start sc-statuspage
-    systemctl enable sc-generate-status
+    systemctl enable sc-generate-status.timer
     systemctl enable sc-statuspage
     
 Users should disable the "sc-statuspage" service if they plan on installing 
