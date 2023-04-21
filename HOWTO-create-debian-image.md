@@ -880,7 +880,7 @@ The script also commands the LED status light to turn solid green and sets the
 network interrupt CPU affinity to CPU 1, which our testing showed will slightly
 improve networking performance if the SMP kernel is active.
 
-Create these boot script and associated systemd service files with the following
+Create these boot scripts and associated systemd service files with the following
 commands issued as root on the Seagate Central.
 
     # Create the startup script
