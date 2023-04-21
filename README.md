@@ -206,7 +206,7 @@ with the following commands issued as root.
 You will need to log out and log back in to your ssh session before
 you see the hostname changed in your command prompt. Your ssh client
 may complain that the hosts's keys have changed. You should accept
-the new keys.
+the new keys from the host because they have indeed changed.
 
 #### Configure the local timezone and time
 By default, the system will be set to the North America/Pacific timezone.
