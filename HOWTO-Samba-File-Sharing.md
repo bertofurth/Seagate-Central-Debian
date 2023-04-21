@@ -7,7 +7,9 @@ samba file sharing service on the Debian for Seagate Central system.
 
 The example used will share a Public folder (as on the native 
 Seagate Central), share user's password protected home directories
-and publish another seperate folder for the sc user.
+and publish another seperate folder for the sc user. The example
+will also publish a special "status" folder that contains a dynamically
+generated web page that will show users the IP address of the system.
 
 All commands in this document are executed as the root user or with the
 sudo prefix on the Seagate Central running Debian. 
@@ -91,7 +93,16 @@ behave in a similar way.
         use sendfile = Yes
         veto files = /.AppleDesktop/.AppleDouble/.bashrc/.profile/
         vfs objects = catia fruit streams_xattr
-
+    
+    [Status]
+        comment = Publically viewable status folder
+        guest ok = yes
+        force group = nobody
+        force user = nobody
+        path = /tmp/status
+        broseable = yes
+        read only = yes
+        
     [Public]
         comment = Public Folder. Anyone can read, write and delete files here.
         guest ok = yes
