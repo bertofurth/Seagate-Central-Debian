@@ -1024,7 +1024,8 @@ Install the netcat tool and create the required scripts with the following comma
     Debian for Seagate Central project homepage</a>
     </BODY>
     </HTML>
-    " > /tmp/status/View-System-Status.html; }
+    " > /tmp/status/View-System-Status.html; 
+    touch /tmp/status/View-System-Status.html; }
     done
     EOF
     chmod u+x /usr/sbin/sc-generate-status.sh
