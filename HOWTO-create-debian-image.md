@@ -979,7 +979,7 @@ the Debian operating system. In addition, if a user has configured their
 Seagate Central to use a static IP address, then the unit will almost certainly
 come up with a different DHCP assigned IP address. 
 
-## Simple status web server
+### Simple status web server
 This step sets up the unit to display a very simple status message when
 someone tries to access it on http port 80 via a web browser. This helps
 users to see that the unit is no longer running Seagate Central native 
@@ -1032,13 +1032,13 @@ Install the netcat tool and create the script with the following commands.
 Users should disable this service if they plan on installing a 
 proper web server on the unit.
 
-## Reboot the unit    
+### Reboot the unit    
 At this point reboot the unit with the "reboot" command and make sure
 it comes up as before with no significant errors in the console
 bootup logs. Once the login prompt reappears, log back in as the root
 user.
 
-## Clean cached files and power off the Seagate Central 
+### Clean cached files and power off the Seagate Central 
 After confirming that the unit has successfully rebooted, run the following 
 commands to clear the disk of any cached Debian repository files and logs
 which can consume a large amount of space. We don't need to include these
