@@ -1118,14 +1118,20 @@ it comes up as before with no significant errors in the console
 bootup logs. Once the login prompt reappears, log back in as the root
 user.
 
-### Optional - Configure samba and other services
-If you wish you may add or configure any other services at this point.
+### Optional - Configure samba and other packages. 
+If you wish you may add or configure any other software packages 
+at this point.
 
-You could add a working samba service to the image by following the
-instructions in the HOWTO-Samba-File-Sharing.md document at this point.
+For example, you could add a working samba service to the image by following 
+the instructions in the HOWTO-Samba-File-Sharing.md document at this point.
 When following that procedure bear in mind that the large data volume
 is yet to be mounted.
 
+You can also check the disk space used by the installed packages with
+the following command.
+
+    dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n
+    
 ### Clean up files and power off the Seagate Central 
 After confirming that the unit has successfully rebooted, run the following 
 commands to clear the disk of any cached Debian repository files and logs
