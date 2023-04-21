@@ -124,12 +124,14 @@ behave in a similar way.
         read only = no
     EOF   
 
-After any changes are made to the /etc/samba/smb.conf configuration file
-issue the "testparm" command to sanity check the new configuration, then
+Issue the "testparm" command to sanity check the new configuration, then
 restart the samba service as follows.
 
     testparm
     systemctl restart smbd nmbd
+
+After any changes are made to the /etc/samba/smb.conf configuration file
+the above commands should be issued.
 
 The server is now serving the following folders
 
@@ -137,19 +139,20 @@ The server is now serving the following folders
 \\server-name\sc - The "sc" user's home directory (password protected)
 \\server-name\sc-backup - The "sc" user's backup storage directory (password protected)
 
-These file shares can be accessed by specifying either the name
-of the server or the IP address of the server. For example
+These file shares can be accessed from your client by specifying either the
+name of the server or the IP address of the server. For example
 "\\server-name\Public"  or "\\192.168.1.58\Public" 
 
-#### Optional - samba not discoverable by Windows Explorer
-Although the samba file sharing service is now accessable, it may not be
+## Optional - Make samba discoverable by Windows Explorer
+Although the samba file sharing service is now operational, it may not be
 automatically discoverable by Windows explorer. This is a consequence of
-the less secure SMBv1 being disabled in by default in Windows 10 and
-in the version of samba in Debian. (Seagate Central native firmware
-still uses SMBv1.)
+the less secure SMBv1 protocol being disabled by default in Windows 10, in
+modern samba software and most other modern clients. Seagate Central
+native firmware still uses the insecure SMBv1 protocol and may therefore
+be more easily automatically detectable.
 
 If you'd like your server to be automatically discoverable using the
-Windows explorer "Network" window then you may need to install a tool
+Windows explorer "Network" view then you may need to install a tool
 called "wsdd" (Web Services Dynamic Discovery) on the Seagate Central.
 This tool is not natively available in the Debian Bullseye software 
 repository at the time of writing but can be installed as per the
@@ -158,12 +161,15 @@ documentation at the tool's homepage.
 https://github.com/christgau/wsdd
 
 First, install the "wget" package if it hasn't already been installed.
+It consumes about 1M of space but is a worthwhile utility to have on
+your system. (You can uninstall it later if you wish)
 
      apt-get install wget
 
 Install the wsdd tool as follows. The "gpg" tool and most of the other
 dependancies of wssd should should already be installed as part of
-installing samba.
+installing samba so installing this tool will not consume much
+extra space on the system.
 
     wget -O- https://pkg.ltec.ch/public/conf/ltec-ag.gpg.key | gpg --dearmour > /usr/share/keyrings/wsdd.gpg
     source /etc/os-release
@@ -175,15 +181,71 @@ Activate the wsdd tool as follows
 
     systemctl start wsdd
      
-After activating wsdd the server should be automatically detectable in the
-Windows Explorer Network view.
+After activating "wsdd" the NAS should automatically appear in the Windows
+Explorere Network view for clients on the same local network.
+
+Note that there is another tool called "wsdd2" which also performs the
+same task as "wsdd" and is slightly more versatile and resource friendly
+however, installing it at present requires that it be compiled from source
+code which is beyond the scope of this procedure. Hopefully, future
+versions of Debian will have a "wsdd2" package natively available for
+installation.
+
+## Optional - Make samba discoverable by Mac Finder
+The Apple Macintosh series of devices uses the "Bonjour" service
+discovery protocol to automatically discover network resources. The
+open source "avahi" tool can be installed on the NAS to advertise the
+samba service using this protocol.
+
+Install the avahi daemon as follows. Note that this will consume about
+5MB worth of space on your system.
+
+    apt-get install avahi-daemon
+    
+Next, we need to create an avahi service configuration file describing 
+the samba service. These service configuration files are used to advertise
+services available on the system.
+
+    cat << EOF > /etc/avahi/services/samba.service
+    <?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+    <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+    <service-group>
+      <name replace-wildcards="yes">%h</name>
+      <service>
+        <type>_smb._tcp</type>
+        <port>445</port>
+
+      </service>
+    </service-group>
+    EOF
+
+Restart the avahi daemon to start advertising the samba service to
+the Apple devices on your local network
+
+     systemctl restart avahi-daemon
+     
+The server should now appear in the "Network" view in the Finder tool.
+
+If you add other services to your NAS, such as a DLNA media server, then
+check whether it's possible to advertise these new services to the Apple
+devices in your local network by adding another avahi service configuration 
+file.
+
+ 
+
+
 
 ## TODO (but probably not)
 Add instructions for creating "usershares" using the "sambashare" group
 
 https://wiki.archlinux.org/title/samba
 
-These allow users to publish and create their own shares without relying on
+Sample command
+
+    net usershare add mytestshare ~/testshare/ "MY TEST SHARE" everyone:F guest_ok=y
+
+These "usershares" allow users to publish and create their own shares without relying on
 the system administrator to reconfigure smb.conf
 
 
