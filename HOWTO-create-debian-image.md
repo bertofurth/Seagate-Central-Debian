@@ -19,8 +19,9 @@ emulator and how to use basic Linux commands.
 Most importantly, this procedure requires access to the serial console
 of the Seagate Central. This serial console needs to be manually installed
 by physically opening up the unit, soldering wires onto the circuit board,
-and connecting to the unit's serial console. Note that unless this soldering 
-process is done carefully, the unit may be damaged and become inoperative!
+and connecting a terminal system to the unit's serial console. Note that
+unless this soldering process is done carefully, the unit may be physically
+damaged and become inoperative!
 
 ## Warning
 **Performing modifications of this kind on the Seagate Central is not without
@@ -33,6 +34,9 @@ a system that people's health or safety depends on.**
 
 **This procedure will overwrite any data or settings on the unit being worked 
 on. Be sure to backup any important data before proceeding.**
+
+**This project is not endorsed or supported by the original vendors or
+manufacturers of the Seagate Central NAS.**
 
 ## Prerequisites
 * A working serial console connection to the Seagate Central (Hard)
@@ -899,7 +903,7 @@ commands issued as root on the Seagate Central.
     chmod u+x /usr/sbin/sc-bootup.sh
     
     # Create the shutdown script
-    cat << EOF > /usr/sbin/sc-shutdown.sh
+    cat << "EOF" > /usr/sbin/sc-shutdown.sh
     #!/bin/bash
     echo Performing Seagate Central Specific Shutdown
     echo Setting status LED to flashing red
@@ -908,7 +912,7 @@ commands issued as root on the Seagate Central.
     chmod u+x /usr/sbin/sc-shutdown.sh
     
     # Create the systemd service file for startup
-    cat << EOF > /etc/systemd/system/sc-bootup.service
+    cat << "EOF" > /etc/systemd/system/sc-bootup.service
     [Unit]
     Description=Seagate Central specific bootup
     After=multi-user.target
@@ -922,7 +926,7 @@ commands issued as root on the Seagate Central.
     EOF
 
     # Create the systemd service file for shutdown
-    cat << EOF > /etc/systemd/system/sc-shutdown.service
+    cat << "EOF" > /etc/systemd/system/sc-shutdown.service
     [Unit]
     Description=Seagate Central specific shutdown
     DefaultDependencies=no
@@ -951,7 +955,7 @@ to specify partitions but this is not helpful in our case because the UUIDs
 on the target system will not match the ones on the system we're creating this
 image with. We need to specify partition names instead.
 
-    cat << EOF > /etc/fstab
+    cat << "EOF" > /etc/fstab
     # /etc/fstab: static file system information.
     #
     # <file system> <mount point>   <type>  <options>             <dump>  <pass>
@@ -1000,7 +1004,7 @@ Install the netcat tool and create the required scripts with the following comma
 
     apt-get -y install netcat
 
-    cat << EOF > /usr/sbin/sc-generate-status.sh
+    cat << "EOF" > /usr/sbin/sc-generate-status.sh
     #!/bin/bash
     # This script generates a simple status page continually
     # and pipes it into file /tmp/status/Click-For-Status.html
@@ -1035,7 +1039,7 @@ Install the netcat tool and create the required scripts with the following comma
     
     chmod u+x /usr/sbin/sc-generate-status.sh
     
-    cat << EOF > /usr/sbin/sc-statuspage.sh
+    cat << "EOF" > /usr/sbin/sc-statuspage.sh
     #!/bin/bash
     # This script serves the file /tmp/status/Click-For-Status.html
     # as a web page via the netcat utility. Only one user at a time!
@@ -1049,7 +1053,7 @@ Install the netcat tool and create the required scripts with the following comma
     chmod u+x /usr/sbin/sc-statuspage.sh
     
     # Create the systemd service files
-    cat << EOF > /etc/systemd/system/sc-statuspage.service
+    cat << "EOF" > /etc/systemd/system/sc-statuspage.service
     [Unit]
     Description=Simple status webpage
     Requires=network-online.target
@@ -1064,7 +1068,7 @@ Install the netcat tool and create the required scripts with the following comma
     WantedBy=multi-user.target
     EOF
     
-    cat << EOF > /etc/systemd/system/sc-generate-status.service
+    cat << "EOF" > /etc/systemd/system/sc-generate-status.service
     [Unit]
     Description=Generate status webpage
 
@@ -1073,7 +1077,7 @@ Install the netcat tool and create the required scripts with the following comma
     ExecStart=/bin/bash /usr/sbin/sc-generate-status.sh
     EOF
     
-    cat << EOF > /etc/systemd/system/sc-generate-status.timer
+    cat << "EOF" > /etc/systemd/system/sc-generate-status.timer
     Description=Generate status webpage timer
     Requires=network-online.target
     After=network-online.target
