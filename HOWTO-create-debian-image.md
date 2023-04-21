@@ -988,7 +988,9 @@ firmware but that it is running Debian.
 We use the netcat tool to generate a web page rather than a full blown web
 server as this only uses a small amount of disk and cpu resources. The webpage
 will simple state that Debian has been installed, what the IP 
-address of the unit is, and that the unit needs to be configured via ssh.
+address of the unit is, and that the unit needs to be configured via ssh. Note
+that this web service is not very robust. Only one client can connect
+every 30 seconds!
 
 Install the netcat tool and create the required scripts with the following commands.
 
@@ -1034,9 +1036,7 @@ Install the netcat tool and create the required scripts with the following comma
     #!/bin/bash
     # This script serves the file /tmp/status/Click-For-Status.html
     # as a web page via the netcat utility
-    while true; do {
-    cat /tmp/status/View-System-Status.html | nc -4 -6 -l 80 > /dev/null; }
-    done
+    cat /tmp/status/View-System-Status.html | nc -l 80 > /dev/null;
     EOF
     chmod u+x /usr/sbin/sc-statuspage.sh
     
@@ -1049,6 +1049,8 @@ Install the netcat tool and create the required scripts with the following comma
 
     [Service]
     ExecStart=/bin/bash /usr/sbin/sc-statuspage.sh 
+    Restart=always
+    RuntimeMaxSec=30s
     
     [Install]
     WantedBy=multi-user.target
