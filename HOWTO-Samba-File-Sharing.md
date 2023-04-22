@@ -143,8 +143,11 @@ the above commands should be issued.
 The samba server should now be sharing the following folders.
 
 \\server-name\Public - Public folder accessible by anyone.
+
 \\server-name\sc - The "sc" user's home directory (password protected and hidden)
+
 \\server-name\sc-backup - The "sc" user's backup storage directory (password protected)
+
 \\server-name\status - A folder containing a dynamically generated html file with the system status
 
 These file shares can be accessed from your client by specifying either the
