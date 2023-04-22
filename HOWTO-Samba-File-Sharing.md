@@ -142,13 +142,13 @@ the above commands should be issued.
 
 The samba server should now be sharing the following folders.
 
-\\server-name\Public - Public folder accessible by anyone.
+**\\server-name\Public** - Public folder accessible by anyone.
 
-\\server-name\sc - The "sc" user's home directory (password protected and hidden)
+**\\server-name\sc** - The "sc" user's home directory (password protected and hidden)
 
-\\server-name\sc-backup - The "sc" user's backup storage directory (password protected)
+**\\server-name\sc-backup** - The "sc" user's backup storage directory (password protected)
 
-\\server-name\status - A folder containing a dynamically generated html file with the system status
+**\\server-name\status** - A folder containing a dynamically generated html file with the system status
 
 These file shares can be accessed from your client by specifying either the
 name of the server or the IP address of the server. For example
@@ -175,7 +175,7 @@ First, install the "wget" package if it hasn't already been installed.
 It consumes about 4M of space but is a worthwhile utility to have on
 your system and you can uninstall it later if you wish.
 
-     apt-get install wget
+    apt-get install wget
 
 Install the wsdd tool as follows. The "gpg" tool and most of the other
 dependencies of wssd should already be installed as part of
