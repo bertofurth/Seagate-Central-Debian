@@ -104,13 +104,13 @@ to the IP address of the unit.
 
 In some cases, depending on your local DHCP server configuration, the unit may
 come back up with the same DHCP assigned IP address it had while running Seagate
-Central native firmware. If this is the case then you should see a message appear
-in your browser indicating that the unit has upgraded to Debian and what
-the unit's new IP address is.
+Central native firmware. If this is the case then a few minutes after the upgrade
+is complete you should see a message appear in your browser indicating that the
+unit has upgraded to Debian.
 
-If no such status message appears or if the unit's IP address appears to have
-changed then the first thing to try is to type the following URL in you browser 
-window.
+If no such status message appears then the unit's IP address may have changed.
+The first thing to try is to type the following URL in your browser's address
+bar.
 
      http://SC-Debian
      
@@ -147,9 +147,10 @@ address of the Seagate Central
     22/tcp open  ssh
     MAC Address: 00:10:75:XX:XX:XX (Segate Technology)
 
-In some rare cases, the unit's ethernet interface may not work after rebooting.
-Try power cycling the unit, waiting for the status LED to turn green again and
-then try to connect to the unit again.
+In some rare cases, the unit's ethernet interface may not work after rebooting
+just after an upgrade. Try power cycling the unit, wait for the status LED
+to turn green again, wait a few minutes then try to find the unit's IP address
+again.
 
 If the unit becomes completely unreachable then go to the section at the end
 of this document titled "Revert to original firmware".
@@ -201,7 +202,7 @@ with the following commands issued as root.
     hostnamectl set-hostname YourNewHostName
     sed -i 's/SC-debian/YourNewHostName/g' /etc/hosts 
     rm /etc/ssh/*key*
-    ssh-keygen -A
+    dpkg-reconfigure openssh-server
     
 You will need to log out and log back in to your ssh session before
 you see the hostname changed in your command prompt. Your ssh client
