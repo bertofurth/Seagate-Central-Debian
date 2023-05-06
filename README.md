@@ -725,8 +725,8 @@ assume that the system is using a standard 4K page size.
 
 As a benchmark for the system's performance, we managed to recompile the Linux
 kernel for Seagate Central on a Seagate Central running Debian. This process
-takes 45 minutes on a Raspberry Pi 4B (-j4). It takes about 7.5 hours on a Seagate
-Central (-j1).
+takes 45 minutes on a Raspberry Pi 4B. On the Seagate Central running Debian
+it takes about 7.5 hours in non-SMP mode and 4 hours in SMP mode.
 
 ### Revert to original firmware
 The most common issue that may occur after an upgrade is that the unit no longer has network
