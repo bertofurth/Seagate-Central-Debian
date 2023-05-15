@@ -377,13 +377,12 @@ be anything, but you must take a note of the name. We use "uInitrd.new" in this 
 
 The following shows an example session on a Seagate Central that has had the
 relevant files already transferred to it. (N.B. You must be logged in as root)
-BERTO
+
     # Check that the files have been uploaded to the Seagate Central
     root@NAS-X:/home/admin# ls -l
-    total 18628
-    -rw-r--r-- 1 admin 1000  4316328 Apr 17 22:15 uImage.4k
-    -rw-r--r-- 1 admin 1000  4125320 Apr 17 22:15 uImage.4k.nosmp
-    -rw-r--r-- 1 admin 1000 10628646 Apr 17 22:15 uInitrd.new
+    -rw-r--r-- 1 admin 1000  4437184 May 12 22:48 uImage-sc.v6.1.28.4k
+    -rw-r--r-- 1 admin 1000  4437440 May 12 22:45 uImage-sc.v6.1.28.64k
+    -rw-r--r-- 1 admin 1000 10628646 May 12 22:15 uInitrd.new
     
     # Mount the primary boot partition
     root@NAS-X:/home/admin# mount /dev/sda1 /mnt/sda1
@@ -393,10 +392,10 @@ BERTO
     -rw-r--r-- 1 root root 2989612 Apr  9 17:11 uImage
     
     # Copy the kernels and uInitrd to the boot partition
-    # Note that here we set the nosmp image to be the
+    # Note that here we set the 64K image to be the
     # "uImage" that will be booted.
-    root@NAS-X:/home/admin# cp uImage.4k.nosmp /mnt/sda1/uImage
-    root@NAS-X:/home/admin# cp uImage.4k /mnt/sda1/
+    root@NAS-X:/home/admin# cp uImage-sc.v6.1.28.64k /mnt/sda1/uImage
+    root@NAS-X:/home/admin# cp uImage-sc.v6.1.28.4k /mnt/sda1/
     
     # Copy the uInitrd.new image to the boot partition
     root@NAS-X:/home/admin# cp uInitrd.new /mnt/sda1/
@@ -405,8 +404,8 @@ BERTO
     root@NAS-X:/home/admin# ls -l /mnt/sda1
     total 18714
     drwx------ 2 root root    12288 Apr 17 15:00 lost+found
-    -rw-r--r-- 1 root root  4125320 Apr 17 22:18 uImage
-    -rw-r--r-- 1 root root  4316328 Apr 17 22:18 uImage.4k
+    -rw-r--r-- 1 root root  4437184 May 12 22:48 uImage-sc.v6.1.28.4k
+    -rw-r--r-- 1 root root  4437440 May 12 22:45 uImage-sc.v6.1.28.64k
     -rw-r--r-- 1 root root 10628646 Apr 17 22:20 uInitrd.new
 
 ### Prepare to boot the installer via the serial console
@@ -523,12 +522,13 @@ you should see the Linux kernel booting as per the example below.
     Whitney # bootm 0x24000000 0x24A00000
     enter do_eth_down!!!
     ## Booting kernel from Legacy Image at 24000000 ...
-       Image Name:   Linux-5.15.86-sc
-       Created:      2023-01-06  11:43:31 UTC
+       Image Name:   Linux-6.1.28-sc
+       Created:      2023-05-13   5:23:37 UTC
        Image Type:   ARM Linux Kernel Image (uncompressed)
-       Data Size:    4316264 Bytes =  4.1 MB
+       Data Size:    4437376 Bytes =  4.2 MB
        Load Address: 22000000
        Entry Point:  22000000
+       Loading Kernel Image ... OK
     ## Loading init Ramdisk from Legacy Image at 24a00000 ...
        Image Name:   debian-installer ramdisk
        Created:      2023-04-09   7:48:38 UTC
@@ -807,14 +807,21 @@ two kernels with the following commands issued as the root user.
     This directory contains two Linux kernel images that can be used
     for Debian on the Seagate Central.
     
-    uImage.4k.nosmp - A kernel that uses just 1 of the 2 CPU cores on
-    the unit. This kernel is more stable. This is the default kernel.
+    uImage.vX.X.X.4k - A kernel that uses a standard 4K page size. This 
+    kernel is the most memory efficient but has slower file
+    serving performance than the other kernel. In addition when using
+    this kernel the large Data partition created by the native Seagate
+    Central firmware will not be accessable and will need to be 
+    reformatted. Choose this kernel if you are running more than just
+    file sharing services on this system.
     
-    uImage.4k - A kernel that uses both CPU cores via SMP mode. This
-    kernel has higher performance but due to the poor heat dissipation 
-    characteristics of the Seagate Central, it may result in some system
-    instability (Segmentation Faults) if the unit is under sustained 
-    high CPU load. Advanced users may wish to try this kernel.
+    uImage.vX.X.X.64k - A kernel that uses a non standard 64K page size.
+    This kernel is less memory efficient than the other kernel but will
+    have a significantly better performance with file sharing services.
+    both CPU cores via SMP mode. This kernel can access the Data partition
+    as created by the native Seagate Central firmware. Choose this kernel
+    if the system will be used primarily for file sharing services and 
+    little else. This is the default kernel.
     
     If you wish to change the kernel image the system uses then copy
     the desired kernel image to the boot partition using the filename 
@@ -883,6 +890,10 @@ The script also commands the LED status light to turn solid green and sets the
 network interrupt CPU affinity to CPU 1, which our testing showed will slightly
 improve networking performance if the SMP kernel is active.
 
+Finally the script provides the user with the ability to reduce the CPU clock
+frequency in the case that the unit is running too hot. See the section entitled
+"CPU heat issues" in the README.md document in this project for more details. 
+
 Create these boot scripts and associated systemd service files with the following
 commands issued as root on the Seagate Central.
 
@@ -894,10 +905,17 @@ commands issued as root on the Seagate Central.
     echo 1 > /proc/cns3xxx/leds
     echo Resetting u-boot environment variable num_boot_tries to 0
     fw_setenv num_boot_tries 0 &> /dev/null
-    echo Set network CPU affinity to CPU 1
-    # If the smp kernel is not active these will fail, but no matter.
-    echo 2 > /proc/irq/49/smp_affinity
-    echo 2 > /proc/irq/51/smp_affinity
+    J=$(nproc)
+    if [ $J -ge 2 ]; then
+        echo Set network CPU affinity to CPU 1
+        echo 2 > /proc/irq/49/smp_affinity
+        echo 2 > /proc/irq/51/smp_affinity
+    fi
+    # Optional CPU frequency change. 
+    # Use max value "12" for 700MHz, min value "3" for 400MHz
+    # Only values from "3" to "12" are supported.
+    # echo Set CPU freq to 666MHz for SMP operation
+    # echo "11" > /proc/cns3xxx/pm_cpu_freq
     EOF
     chmod u+x /usr/sbin/sc-bootup.sh
     
@@ -907,6 +925,11 @@ commands issued as root on the Seagate Central.
     echo Performing Seagate Central Specific Shutdown
     echo Setting status LED to flashing red
     echo 5 > /proc/cns3xxx/leds
+    # Do not skip the following step otherwise the unit
+    # will hang on soft reboot and will need to be
+    # physically power cycled.
+    echo Setting CPU clock back to default 700 MHz
+    echo "12" > /proc/cns3xxx/pm_cpu_freq
     EOF
     chmod u+x /usr/sbin/sc-shutdown.sh
     
