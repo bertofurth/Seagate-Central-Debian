@@ -112,38 +112,37 @@ and install the hard drive but there's no need to put the plastic cover back
 on for the moment because later in the procedure the hard drive will
 need to be removed again.
 
-### Obtain the 4K page Linux kernels for Seagate Central
-Refer to the "Releases" section of the Seagate-Central-Slot-In-v5.x-Kernel project
-to download the latest version of the 4K page size Linux kernels for Seagate Central
+### Obtain the Linux kernels for Seagate Central
+Refer to the "Releases" section of the Seagate-Central-Modern-Slot-In-Kernel project
+to download the latest version of the Linux kernels for Seagate Central
 
-https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel/releases
+https://github.com/bertofurth/Seagate-Central-Modern-Slot-In-Kernel/releases
 
 Note that we will be downloading **two** kinds of kernel images. 
 
-uImage.4k - 4k page kernel with smp enabled
-uImage.4k.nosmp - 4k page kernel with smp disabled
+uImage-sc.vX.X.X.4k - 4k page kernel
+uImage-sc.vX.X.X.64k.nosmp - 64k page kernel
 
 As an example let's start working in a base directory on our Debian building
 machine and download these files. Check the URL you are using to download.
 
-    wget https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel/releases/download/v1.6/uImage.4k.nosmp
-    wget https://github.com/bertofurth/Seagate-Central-Slot-In-v5.x-Kernel/releases/download/v1.6/uImage.4k
+    wget https://github.com/bertofurth/Seagate-Central-Modern-Slot-In-Kernel/releases/download/v1.7/uImage-sc.v6.1.28.4k
+    wget https://github.com/bertofurth/Seagate-Central-Modern-Slot-In-Kernel/releases/download/v1.7/uImage-sc.v6.1.28.64k
     
-The reason we need to download two kernels is that our tests have shown that
-under some circumstances the unit is not physically capable of using SMP
-mode. This is because of heat dissipation issues. There is more discussion
-about this issue in the main README.md file in this project under the
-section entitled "Choice of Linux kernels (SMP / no SMP)".
+The reason we need to download two kernels is that some users may wish to
+run their Debian system in standard 4K page mode, while others may wish to
+make use of 64K page mode.
 
-We will set up the installation image to install the "nosmp" version of the kernel
-by default and users can chose to manually change to the smp enabled version if
-they want to take the risk of running it.
-
-Another point worht noting is that the Seagate Central natively uses a 64K page
-size kernel for the sake of disk performance however the 4K page size kernel is
-significantly more memory efficient. Since the Debian operating system can be more
-memory hungry than the native Seagate Central firmware it was judged necessary to
-make this compromise between disk performance and memory efficiency.
+The basic difference is that 4K mode is more memory efficient and will work
+better for the case where many different services are running on a unit. 64K
+mode however will allow file serving operations to run more quickly and
+efficiently and would probably be a better choice if the unit was a dedicated
+file server and did little else. In addition using a 64K kernel would mean that
+users will have the option of maintaining access to the native large Data partition
+as created by the Seagate Cental native firmware because this Data parititon can
+only be accessed by using a 64K page kernel. Users who choose the 4K kernel will
+have to reformat the large Data partition using a 4K page size in order to make
+use of it.
 
 If you wish, you can recompile the kernel according to your own desire and
 specifications.
@@ -358,7 +357,7 @@ You will now have a "uInitrd.new" file that contains the updated "anna"
 utility. It should be roughly 10MB in size.
 
 ### Upload kernel and uInitrd ramdisk to the boot partition on the Seagate Central
-The goal of this section is to copy the new 4K kernels and the new uInitrd to the
+The goal of this section is to copy the new Linux kernels and the new uInitrd to the
 appropriate boot partition on the Seagate Central.
 
 The easiest way to accomplish this is to upload these files to the Seagate Central,
@@ -372,13 +371,13 @@ The examples in this document will be given on this basis.
 Note that even though we will be copying both types of kernel images to the unit,
 the kernel image we wish to use during installation must be copied to the relevant
 boot partition using the name "uImage" so as to overwrite the native "uImage" file
-on that partition. In the example below we chose to use the "nosmp" kernel for the
-sake of system stability. The uInitrd image name can be anything, but you must take a
-note of the name. We use "uInitrd.new" in this document.
+on that partition. In the example below we chose to use the "64K" kernel as the initial
+choice however users may subsequently chose the 4K kernel. The uInitrd image name can
+be anything, but you must take a note of the name. We use "uInitrd.new" in this document.
 
 The following shows an example session on a Seagate Central that has had the
 relevant files already transferred to it. (N.B. You must be logged in as root)
-
+BERTO
     # Check that the files have been uploaded to the Seagate Central
     root@NAS-X:/home/admin# ls -l
     total 18628
