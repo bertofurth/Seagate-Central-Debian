@@ -905,7 +905,7 @@ commands issued as root on the Seagate Central.
     echo 1 > /proc/cns3xxx/leds
     echo Resetting u-boot environment variable num_boot_tries to 0
     fw_setenv num_boot_tries 0 &> /dev/null
-    J=$(nproc)
+    J=$(/usr/bin/nproc)
     if [ $J -ge 2 ]; then
         echo Set network CPU affinity to CPU 1
         echo 2 > /proc/irq/49/smp_affinity
@@ -914,8 +914,8 @@ commands issued as root on the Seagate Central.
     # Optional CPU frequency change. 
     # Use max value "12" for 700MHz, min value "3" for 400MHz
     # Only values from "3" to "12" are supported.
-    # echo Set CPU freq to 666MHz for SMP operation
-    # echo "11" > /proc/cns3xxx/pm_cpu_freq
+    #echo Set CPU freq to 666MHz for SMP operation
+    #echo "11" > /proc/cns3xxx/pm_cpu_freq
     EOF
     chmod u+x /usr/sbin/sc-bootup.sh
     
@@ -983,6 +983,9 @@ image with. We need to specify partition names instead.
     # <file system> <mount point>   <type>  <options>             <dump>  <pass>
     /dev/root       /               auto    errors=remount-ro      0      1
     /dev/sda6       none            swap    sw                     0      0
+    /dev/vg1/lv1    /Data           auto    errors=remount-ro      0      2
+    
+Data HERE HERE HERE BERTO ADD CREATE DIRECTORY
     EOF
 
 Once the unit has booted properly then users can perform further customization
