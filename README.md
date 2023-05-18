@@ -239,6 +239,13 @@ Change this timezone as per the following example.
     apt-get -y install systemd-timesyncd
     timedatectl set-ntp yes
     
+### Optional - Update Debian
+Ensure that your system is running the latest Debian software by performing
+an update using the following commands issued as root
+
+     apt-get update
+     apt-get dist-upgrade
+     
 ### Optional - Install Debian on backup partitions
 At this stage of the process the active Seagate Central partitions have
 Debian installed but the backup partitions have the native Seagate Central
@@ -470,7 +477,7 @@ per the following example
     Mem:          247108       24972       91924         940      130212      213252
     Swap:        1048572           0     1048572
     
-### 4K Kernel - Optional but recommended - Format and mount the large Data partition
+#### 4K Kernel - Optional but recommended - Format and mount the large Data partition
 **Warning: This step will delete all files and data from the large Data partition.**
 
 The Data partition as used by the native Seagate Central firmware makes
