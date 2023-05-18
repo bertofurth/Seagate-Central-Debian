@@ -154,6 +154,9 @@ These file shares can be accessed from your client by specifying either the
 name of the server or the IP address of the server. For example
 "\\server-name\Public"  or "\\192.168.1.58\Public" 
 
+If you wish to share other folders then naturally you can modify /etc/samba/smb.conf
+appropriately.
+
 ## Optional - Make samba discoverable by Windows Explorer
 Although the samba file sharing service is now operational, it may not be
 automatically discoverable by Windows explorer. This is a consequence of
