@@ -234,7 +234,8 @@ Change this timezone as per the following example.
     timedatectl set-time "2023-03-28 10:35:00"
     
     # Optional but suggested. Set up the system to sync 
-    # to an NTP server for accurate time.    
+    # to an NTP server for accurate time. 
+    apt-get update
     apt-get -y install systemd-timesyncd
     timedatectl set-ntp yes
     
