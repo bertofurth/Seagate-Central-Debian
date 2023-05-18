@@ -32,7 +32,7 @@ unusable or damaged.**
 **Do not use the products of this project in a mission critical system or in
 a system that people's health or safety depends on.**
 
-**This procedure will overwrite any data or settings on the unit being worked 
+**This procedure may overwrite any data or settings on the unit being worked 
 on. Be sure to backup any important data before proceeding.**
 
 **This project is not endorsed or supported by the original vendors or
@@ -105,7 +105,7 @@ use a default of 9600 or 115200.
 
 If the circuit board is not fitted into the chassis try to only keep the 
 board powered on for short bursts of time because the CPU will not be connected
-to its heatsink.
+to its heatsink and it may potentially be damaged if it gets too hot.
 
 Once you've confirmed that the serial console is working, reassemble the unit
 and install the hard drive but there's no need to put the plastic cover back 
@@ -123,7 +123,7 @@ Note that we will be downloading **two** kinds of kernel images.
 uImage-sc.vX.X.X.4k - 4k page kernel
 uImage-sc.vX.X.X.64k.nosmp - 64k page kernel
 
-As an example let's start working in a base directory on our Debian building
+As an example, let's start working in a base directory on our Debian building
 machine and download these files. Check the URL you are using to download.
 
     wget https://github.com/bertofurth/Seagate-Central-Modern-Slot-In-Kernel/releases/download/v1.7/uImage-sc.v6.1.28.4k
@@ -137,7 +137,7 @@ The basic difference is that 4K mode is more memory efficient and will work
 better for the case where many different services are running on a unit. 64K
 mode however will allow file serving operations to run more quickly and
 efficiently and would probably be a better choice if the unit was a dedicated
-file server and did little else. In addition using a 64K kernel would mean that
+file server and did little else. In addition, using a 64K kernel would mean that
 users will have the option of maintaining access to the native large Data partition
 as created by the Seagate Cental native firmware because this Data parititon can
 only be accessed by using a 64K page kernel. Users who choose the 4K kernel will
@@ -806,22 +806,18 @@ two kernels with the following commands issued as the root user.
     cat << "EOF" > /kernel/README.txt
     This directory contains two Linux kernel images that can be used
     for Debian on the Seagate Central.
-    
-    uImage.vX.X.X.4k - A kernel that uses a standard 4K page size. This 
-    kernel is the most memory efficient but has slower file
-    serving performance than the other kernel. In addition when using
-    this kernel the large Data partition created by the native Seagate
-    Central firmware will not be accessable and will need to be 
-    reformatted. Choose this kernel if you are running more than just
-    file sharing services on this system.
-    
-    uImage.vX.X.X.64k - A kernel that uses a non standard 64K page size.
-    This kernel is less memory efficient than the other kernel but will
-    have a significantly better performance with file sharing services.
-    both CPU cores via SMP mode. This kernel can access the Data partition
-    as created by the native Seagate Central firmware. Choose this kernel
-    if the system will be used primarily for file sharing services and 
-    little else. This is the default kernel.
+
+    uImage-sc.v6.1.28.64k - A kernel that uses a 64K page size. This
+    kernel is able to read the native large Data partition of a
+    Seagate Central and will have better disk performance but
+    will consume more memory than the other kernel. This is the
+    default kernel.
+
+    uImage-sc.v6.1.28.4k - A kernel that uses a standard 4K page size.
+    This kernel will not be able to read the native large Data partition
+    of a Seagate Central so this partition will need to be reformatted.
+    This kernel will be more memory efficient and is recommended where
+    a unit will be used for more than just NAS functionality.
     
     If you wish to change the kernel image the system uses then copy
     the desired kernel image to the boot partition using the filename 
@@ -977,6 +973,7 @@ to specify partitions but this is not helpful in our case because the UUIDs
 on the target system will not match the ones on the system we're creating this
 image with. We need to specify partition names instead.
 
+    mkdir /Data
     cat << "EOF" > /etc/fstab
     # /etc/fstab: static file system information.
     #
@@ -985,12 +982,8 @@ image with. We need to specify partition names instead.
     /dev/sda6       none            swap    sw                     0      0
     /dev/vg1/lv1    /Data           auto    errors=remount-ro      0      2
     
-Data HERE HERE HERE BERTO ADD CREATE DIRECTORY
-    EOF
-
 Once the unit has booted properly then users can perform further customization
-of the fstab file to include the large Data partition and possibly the
-"boot" and other partitions. 
+of the fstab file and the file systems.
 
 ### Customize dhcp client configuration in /etc/dhcp/dhclient.conf
 Here we modify the default dhcp client configuration to make it more
