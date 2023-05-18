@@ -4,7 +4,8 @@ Seagate Central NAS.
 
 These instructions are designed to get the unit to the point of having
 a very basic Debian based Linux operating system with a working
-ssh service installed.
+ssh service installed. Existing usernames and settings will not
+be automatically migrated over.
 
 It is assumed that users embarking on this upgrade process have some
 familiarity with the basics of operating and maintaining a Debian based
@@ -24,7 +25,7 @@ device becoming unusable or damaged.**
 **Do not use the products of this project in a mission critical system
 or in a system that people's health or safety depends on.**
 
-**This procedure will overwrite any data or settings on the unit being
+**This procedure may overwrite any data or settings on the unit being
 worked on. Be sure to backup any important data before proceeding.**
 
 **This project is not endorsed or supported by the original vendors or
@@ -36,7 +37,7 @@ manufacturers of the Seagate Central NAS.**
 * Establish an ssh connection to the unit (username "sc", default pw "SCDebian2022")
 * Elevate to root with the "su -" command (root default pw "SCDebian2022")
 * Perform system customization (passwords, hostname, timezone etc)
-* Format and mount the large Data partition
+* Optional - Format and mount the large Data partition
 * Cleanup
 * Perform any other desired customizations
 
@@ -61,10 +62,10 @@ documented in this project in the file HOWTO-create-debian-image.md
 Login to the Seagate Central's web based management tool as an admin
 level user.
 
-If you don't already know the unit's IP address then take a note of it
-as it will be needed later in the procedure. You can find the unit's IP
-address by navigating to the "Settings" tab, opening the "Advanced" folder
-and selecting "Lan". The unit's IP address should be shown. 
+Make sure you know the unit's IP address as it will be needed later in
+the procedure. You can find the unit's IP address by navigating to the
+"Settings" tab, opening the "Advanced" folder and selecting "Lan".
+The unit's IP address should be shown. 
 
 To start upgrading the unit navigate to the "Settings" tab, open the
 "Advanced" folder and select "Firmware Update".
@@ -161,7 +162,7 @@ section of this project is "sc" and the password is "SCdebian2022". You should
 then elevate to the root user by issuing the "su -" command using the default
 root password which is also "SCdebian2022" as per the following example.
 
-    Linux SC-debian 5.15.86-sc #2 SMP Fri Jan 6 22:43:06 AEDT 2023 armv6l
+    Linux SC-debian X.XX.XX-sc #1 SMP Fri Jan 6 22:43:06 AEDT 2023 armv6l
 
     The programs included with the Debian GNU/Linux system are free software;
     the exact distribution terms for each program are described in the
@@ -237,55 +238,6 @@ Change this timezone as per the following example.
     apt-get -y install systemd-timesyncd
     timedatectl set-ntp yes
     
-#### Activate the swap partition
-By default, the swap partition on a Seagate Central is formatted to work with the
-native 64K page kernel. This is not compatible with the 4K page kernel used in 
-Debian. 
-
-To reconfigure and activate the swap partition, issue the following commands.
-
-    /sbin/mkswap /dev/sda6
-    /sbin/swapon /dev/sda6
-
-Issue the "free" command to confirm that the swap space is now in use as
-per the following example
-
-    root@SC-debian:~# free
-                   total        used        free      shared  buff/cache   available
-    Mem:          247108       24972       91924         940      130212      213252
-    Swap:        1048572           0     1048572
-    
-### Optional but recommended - Format and mount the large Data partition
-**Warning: As stated in the introduction of this document, this step will delete
-all files and data from the large Data partition.**
-
-The Data partition as used by the native Seagate Central firmware makes
-use of a non-standard 64K page size. This means that it cannot be easily 
-accessed by the Debian system which uses a standard 4K page size.
-
-The Data partition needs to be formatted using a 4K page size with
-the following command.
-
-    /sbin/mkfs.ext4 -F -L Data -m0 /dev/vg1/lv1
-
-After the partition has been formatted it can be mounted as /Data by
-creating this directory and adding an appropriate entry to the
-/etc/fstab file as follows
-
-    mkdir /Data
-    echo "/dev/vg1/lv1    /Data           auto    errors=remount-ro      0      2" >> /etc/fstab
-    mount /Data
-  
-Advanced users might decide to repartition the large space at the end
-of the drive into multiple partitions. Perhaps one for Data, another for
-home directories and so on.
-
-It is also theoretically possible to access the data on the native 64K page
-formatted Data partition by using the "fuse2fs" utility which is part of the
-"e2fsprogs" Debian package which can be installed on the system. Note however
-that using this utility has much slower performance than a natively mounted
-partition.
-
 ### Optional - Install Debian on backup partitions
 At this stage of the process the active Seagate Central partitions have
 Debian installed but the backup partitions have the native Seagate Central
@@ -463,40 +415,24 @@ This section contains some discussion about advanced topics that are only for
 interested readers. These sections do not need to be followed to get a basic
 system working.
      
-### Choice of Linux kernels (SMP / no SMP)
+### Choice of Linux kernels (64K / 4K Pagesize)
 The default Linux kernel that is active in the Debian for Seagate Central
-upgrade image is a non-SMP kernel. That is, the default kernel only makes
-use of one of the two available CPU cores on the Seagate Central CPU.
+upgrade image uses a 64K page size but the option of using a more standard
+4K page size is offered.
 
-The reason this decision has been made is that the Seagate Central's
-physical housing appears to have not been engineered with heat sink
-capabilities to cope with the heat generated by both CPU cores running
-at full load for an extended period of time.
+The basic difference is that a 4K page size is more memory efficient and
+will work better for the case where many different services are running on
+a unit. 64K mode however, will allow file serving operations to run more
+quickly and efficiently and would probably be a better choice if the unit
+is acting as a dedicated NAS/file server and did little else. In addition 
+using a 64K kernel means that users are able to maintain access to the
+existing data on the large Data partition as created by the Seagate Cental
+native firmware. This is because this large Data partition can only be 
+accessed by using a 64K page kernel. Users who choose the 4K kernel will
+have to reformat the large Data partition using a 4K page size in order to
+make use of it.
 
-Our tests showed that when both CPU cores were running at full load for
-a period of a few minutes, spurious errors may be  generated causing processes
-to fail. In particular, errors such as "Segmentation Fault" or "Illegal 
-Instruction" were reported.
-
-Most modern Linux platforms can cope with momentary high CPU temperatures by
-self regulating their CPU frequency and load, however the Seagate Central is not
-that sophisticated! It might be possible to use something like the "cpulimit"
-utility to make sure that certain processes do not consume too much CPU load
-in order reduce CPU temperatures but this is beyond the scope of this procedure.
-
-Our tests showed that if the default non SMP CPU is run for many hours at high CPU
-loads then the system appears to run stably.
-
-That being said, an advanced user may wish to take the "risk" of running
-the more high performance but potentially less reliable SMP version
-of the kernel. For this reason the /kernel directory on the unit contains two
-kernels as follows. 
-
-uImage.4k.nosmp - A kernel with SMP mode disabled (default)
-
-uImage.4k - A kernel with SMP mode enabled.
-
-If you wish to change the active kernel, simply overwrite the current
+If you wish to change to the 4K kernel, simply overwrite the current
 "uImage" file in the boot partition with the desired kernel image.
 
 Identify the current boot partition by running the shell command
@@ -511,17 +447,75 @@ Mount the relevant boot partition, copy the desired kernel image to it,
 then reboot, as per the following example
 
     mount /dev/sda2 /boot
-    cp /kernel/uImage.4k /boot/uImage
+    cp /kernel/uImage-sc.vX.X.X.4k /boot/uImage
     reboot
 
-Users who are familiar with u-boot and the Linux kernel boot process might wonder
-why we simply don't just use the SMP kernel and change the kernel boot parameters
-to include the "nosmp" keyword. The problem is that there's no easy way to change
-these parameters in the Seagate Central version of u-boot. In a normal u-boot
-system the "bootargs" variable could be modified but in the Seagate Central
-version of u-boot the bootargs are actually hard coded! For this reason it's 
-necessary to use two different kernel image files to give the choice between
-smp and non-smp operation.
+#### 4K Kernel - Activate the swap partition
+By default, the swap partition on a Seagate Central is formatted to work with the
+native 64K page kernel. This is not compatible with the 4K page kernel used in 
+Debian. 
+
+To reconfigure and activate the swap partition, issue the following commands after
+rebooting with the 4K kernel.
+
+    /sbin/mkswap /dev/sda6
+    /sbin/swapon /dev/sda6
+
+Issue the "free" command to confirm that the swap space is now in use as
+per the following example
+
+    root@SC-debian:~# free
+                   total        used        free      shared  buff/cache   available
+    Mem:          247108       24972       91924         940      130212      213252
+    Swap:        1048572           0     1048572
+    
+### 4K Kernel - Optional but recommended - Format and mount the large Data partition
+**Warning: This step will delete all files and data from the large Data partition.**
+
+The Data partition as used by the native Seagate Central firmware makes
+use of a non-standard 64K page size. This means that it cannot be easily 
+accessed by a Debian system which uses a standard 4K page size kernel.
+
+The Data partition needs to be formatted using a 4K page size with
+the following command once the unit has rebooted using a 4K kernel.
+
+    /sbin/mkfs.ext4 -F -L Data -m0 /dev/vg1/lv1
+
+After the partition has been formatted it can be mounted as /Data as
+follows
+
+    mount /dev/vg1/lv1 /Data
+  
+It is theoretically possible to access the data on the native 64K page
+formatted Data partition by using the "fuse2fs" utility which is part of the
+"e2fsprogs" Debian package which can be installed on the system. Note however
+that using this utility has much slower performance than a natively mounted
+partition.
+
+### CPU overheating issues 
+Our tests showed that when both CPU cores were running at full load for
+a period of a few minutes, and the ambient temperature was significantly
+more than 25C / 77F, spurious errors may be generated causing processes
+to fail. In particular, errors such as "Segmentation Fault" or "Illegal 
+Instruction" were reported.
+
+Most modern Linux platforms can cope with momentary high CPU temperatures by
+self regulating their CPU frequency and load, however the Seagate Central is not
+that sophisticated! 
+
+If reducing the ambient temperature is not an option, and if the unit is operating
+under high CPU load for extended periods of time then it is possible to slightly 
+reduce the CPU frequency of the unit in order to reduce the heat produced and
+make the unit more reliable.
+
+This can be done by modifying the /sbin/sc-bootup.sh startup script to select a
+new CPU frequency index (see comments in the script). The highest index (12)
+corresponds to a CPU frequency of 700MHz. This is the highest frequency and 
+is the default. The lowest supported index is 3 and corresponds to a CPU
+frequency of 400MHz. 
+
+The CPU frequency is modified by using the /proc/cns3xxx/pm_cpu_freq special
+file. Issue "cat /proc/cns3xxx/pm_cpu_freq " for more details.
 
 ### Optimize disk layout.
 One problem with using the native Seagate Central native disk layout is that it is
@@ -712,21 +706,13 @@ Debian on Seagate Central will perform less efficiently than the native Seagate
 Central firmware, however it is obviously far more versatile.
 
 I would suggest only installing and running the bare minimum of daemons and services to
-save CPU and memory resources.
-
-The main reason why Debian will perform less efficiently as a file server than
-native firmware is because the native firmware's kernel used a 64K page size. This
-makes disk operations quicker at the expense of system memory efficiency.
-
-It might be possible to load a 64K page size kernel with the Debian distribution 
-but our experience showed that the Seagate Central simply doesn't have 
-enough memory for it to work properly. In addition most Debian stock tools
-assume that the system is using a standard 4K page size.
+save CPU and memory resources or at the very least only making use of services
+one at a time.
 
 As a benchmark for the system's performance, we managed to recompile the Linux
 kernel for Seagate Central on a Seagate Central running Debian. This process
 takes 45 minutes on a Raspberry Pi 4B. On the Seagate Central running Debian
-it takes about 7.5 hours in non-SMP mode and 4 hours in SMP mode.
+it takes about 4 hours in SMP mode (-j2).
 
 ### Revert to original firmware
 The most common issue that may occur after an upgrade is that the unit no longer has network
