@@ -37,7 +37,7 @@ manufacturers of the Seagate Central NAS.**
 * Establish an ssh connection to the unit (username "sc", default pw "SCDebian2022")
 * Elevate to root with the "su -" command (root default pw "SCDebian2022")
 * Perform system customization (passwords, hostname, timezone etc)
-* Optional - Format and mount the large Data partition
+* Optional - Migrate to a 4K kernel then re-format the large Data partition
 * Cleanup
 * Perform any other desired customizations
 
@@ -430,15 +430,19 @@ upgrade image uses a 64K page size but the option of using a more standard
 
 The basic difference is that a 4K page size is more memory efficient and
 will work better for the case where many different services are running on
-a unit. 64K mode however, will allow file serving operations to run more
-quickly and efficiently and would probably be a better choice if the unit
-is acting as a dedicated NAS/file server and did little else. In addition 
-using a 64K kernel means that users are able to maintain access to the
-existing data on the large Data partition as created by the Seagate Cental
-native firmware. This is because this large Data partition can only be 
+a unit. 64K mode however, will allow file serving operations to run slightly 
+more efficiently and would probably be a better choice if the
+unit is acting as a dedicated NAS/file server and did little else. In
+addition, using a 64K kernel means that users are able to maintain access to
+the existing data on the large Data partition as created by the Seagate
+Cental native firmware. This is because this large Data partition can only be 
 accessed by using a 64K page kernel. Users who choose the 4K kernel will
 have to reformat the large Data partition using a 4K page size in order to
 make use of it.
+
+Our testing showed that using the 4K kernel suffers about a 10 - 25% drop in
+raw file transfer performance as compared to the 64K kernel. This probably
+isn't all that significant in a home environment.
 
 If you wish to change to the 4K kernel, simply overwrite the current
 "uImage" file in the boot partition with the desired kernel image.
@@ -452,9 +456,10 @@ If "current_kernel=kernel1" then the boot partition is /dev/sda1
 If "current_kernel=kernel2" then the boot partition is /dev/sda2 
 
 Mount the relevant boot partition, copy the desired kernel image to it,
-then reboot, as per the following example
+then reboot, as per the following example (substitute the boot partition
+for /dev/sdaX).
 
-    mount /dev/sda2 /boot
+    mount /dev/sdaX /boot
     cp /kernel/uImage-sc.vX.X.X.4k /boot/uImage
     reboot
 
@@ -477,15 +482,16 @@ per the following example
     Mem:          247108       24972       91924         940      130212      213252
     Swap:        1048572           0     1048572
     
-#### 4K Kernel - Optional but recommended - Format and mount the large Data partition
-**Warning: This step will delete all files and data from the large Data partition.**
-
+#### 4K Kernel - Format and mount the large Data partition
 The Data partition as used by the native Seagate Central firmware makes
 use of a non-standard 64K page size. This means that it cannot be easily 
 accessed by a Debian system which uses a standard 4K page size kernel.
 
-The Data partition needs to be formatted using a 4K page size with
+The Data partition needs to be re-formatted using a 4K page size with
 the following command once the unit has rebooted using a 4K kernel.
+
+**Warning: This step will delete all exising files and data from the 
+large Data partition.**
 
     /sbin/mkfs.ext4 -F -L Data -m0 /dev/vg1/lv1
 
