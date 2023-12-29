@@ -13,7 +13,7 @@ This procedure should only be performed by someone who has a relatively
 good understanding of what's happening, is fairly familiar with the
 Linux installation process and is fairly familiar with u-boot and the
 Linux bootup process on 32 bit "armel" style platforms. For this reason
-the step by step details of how to perform every step is not included
+the minute details of how to perform every step are not included
 because it's assumed that anyone with the required level of skill to
 perform this procedure will already be familiar with things like how
 to transfer files, how to mount filesystems, how to use a terminal
