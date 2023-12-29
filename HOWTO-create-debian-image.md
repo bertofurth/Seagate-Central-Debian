@@ -1,9 +1,12 @@
 # HOWTO Create Minimal Debian Image
 This a procedure detailing how the Debian installation image for
-Seagate Central was created. There is no need for anyone to perform this
-procedure because prebuilt Seagate Central Debian installation images
-are made available in the releases section of this project. This
-procedure is documented here for the sake of completeness and openness 
+Seagate Central was created. 
+
+**There is no need for anyone to perform this procedure because prebuilt 
+Seagate Central Debian installation images are made available in the 
+releases section of this project**
+
+This procedure is documented here for the sake of completeness and openness 
 in case someone wants to perform the process themselves.
 
 This procedure should only be performed by someone who has a relatively
