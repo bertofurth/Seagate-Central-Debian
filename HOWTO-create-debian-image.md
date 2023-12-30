@@ -971,10 +971,17 @@ or reboot the status LED should start blinking red.
 
 ### Customize filesystem configuration in /etc/fstab
 Modify the /etc/fstab file which governs what filesystems are mounted
-on boot. In the original fstab file, the Debian installer makes use of UUIDs
+on boot. 
+
+In the original fstab file, the Debian installer makes use of UUIDs
 to specify partitions but this is not helpful in our case because the UUIDs
 on the target system will not match the ones on the system we're creating this
 image with. We need to specify partition names instead.
+
+In addition we specify the "nofail" option for the swap and Data partitions 
+because even if these partitions fail to mount we don't want the unit to
+stop booting and go into emergency mode. We still want to be able to ssh
+in to troubleshoot the problem.
 
     mkdir /Data
     cat << "EOF" > /etc/fstab
@@ -982,8 +989,8 @@ image with. We need to specify partition names instead.
     #
     # <file system> <mount point>   <type>  <options>             <dump>  <pass>
     /dev/root       /               auto    errors=remount-ro      0      1
-    /dev/sda6       none            swap    sw                     0      0
-    /dev/vg1/lv1    /Data           auto    errors=remount-ro      0      2
+    /dev/sda6       none            swap    sw,nofail              0      0
+    /dev/vg1/lv1    /Data           auto    errors=remount-ro,nofail      0      2
     
 Once the unit has booted properly then users can perform further customization
 of the fstab file and the file systems.
