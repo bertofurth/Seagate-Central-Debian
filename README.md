@@ -245,7 +245,10 @@ an update using the following commands issued as root
 
      apt-get update
      apt-get dist-upgrade
-     
+
+You may need to reboot the system with the "reboot" command for the updates
+to take effect.
+
 ### Optional - Install Debian on backup partitions
 At this stage of the process the active Seagate Central partitions have
 Debian installed but the backup partitions have the native Seagate Central
