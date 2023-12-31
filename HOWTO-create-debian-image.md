@@ -167,9 +167,12 @@ The Seagate Central shares the same CPU architecture as the LaCie family
 of NAS products which is supported on Debian. For this reason we make
 use of the "lacie" Debian uInitrd installation image.
 
-As of writing the latest version of this uInitrd image is available at
+As of writing the best version of this uInitrd image is available at
 
-http://ftp.debian.org/debian/dists/stable/main/installer-armel/current/images/kirkwood/network-console/lacie/uInitrd
+https://ftp.debian.org/debian/dists/stable/main/installer-armel/20230607/images/kirkwood/network-console/lacie/uInitrd
+
+The latest version after this one seems to crash when being used so this older
+version is more suitable.
 
 In order to manipulate this image make sure your Debian system has
 the "u-boot-tools" package installed so that the "mkimage" utility is
