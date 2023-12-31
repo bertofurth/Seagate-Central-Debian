@@ -12,9 +12,11 @@ familiarity with the basics of operating and maintaining a Debian based
 Linux system.
 
 Some brief guidelines for setting up a simple samba file sharing service
-are given in the file HOWTO-Samba-File-Sharing.md. Installing other services
-that the native Seagate Central firmware provided such as a DLNA media
-server, and a web management interface are left to the user.
+on Debian are given in the file HOWTO-Samba-File-Sharing.md. In addition
+some very brief instructions for setting up the webmin web management
+tool are provided towards the end of this document. Installing 
+other services that the native Seagate Central firmware provided such as 
+a DLNA media server are beyond the scope of this document.
 
 ## Warning 
 **Performing modifications of this kind on the Seagate Central is not 
@@ -30,6 +32,12 @@ worked on. Be sure to backup any important data before proceeding.**
 
 **This project is not endorsed or supported by the original vendors or
 manufacturers of the Seagate Central NAS.**
+
+Note that our tests have shown that the "Bullseye" (Version 11) of
+Debian works fine on the Seagate Central, but we've seen significant
+instability with "Bookworm" (Version 12). It may be that this later
+version of Debian is too resource intensive for the Seagate Central
+hardware to cope with.
 
 ## TLDNR
 * Obtain a Debian for Seagate Central upgrade image (see Releases)
@@ -103,7 +111,7 @@ that the unit has successfully rebooted and move on to the next section.
 After the unit has rebooted you will need to establish an ssh connection
 to the IP address of the unit. 
 
-In some cases, depending on your local DHCP server configuration, the unit may
+In most cases, depending on your local DHCP server configuration, the unit will
 come back up with the same DHCP assigned IP address it had while running Seagate
 Central native firmware. If this is the case then a few minutes after the upgrade
 is complete you should see a message appear in your browser indicating that the
@@ -126,27 +134,6 @@ If this does not work then the next step is to use a "network scanner" or
 Seagate Central to find it's IP address. The tool should indicate that there
 is a device with a "Seagate" MAC address and this is most likely the 
 Seagate Central.
-
-There is a command line tool called "nmap" that can also be used to search for
-hosts on the local network that are offering an ssh service on port 22.
-
-In the following example the local network segment has address 192.168.1.X so we
-use the following form of nmap command. Substitute your own local IP subnet
-address.
-
-    nmap -p 22 192.168.1.0/24
-
-This command will report the IP and MAC addresses of all devices on the
-local network segment with an ssh service available. One of the listed
-hosts should look similar to the following and will indicate the IP
-address of the Seagate Central
-
-    Nmap scan report for 192.168.1.58
-    Host is up (0.00014s latency).
-
-    PORT   STATE SERVICE
-    22/tcp open  ssh
-    MAC Address: 00:10:75:XX:XX:XX (Segate Technology)
 
 In some rare cases, the unit's ethernet interface may not work after rebooting
 just after an upgrade. Try power cycling the unit, wait for the status LED
@@ -357,8 +344,8 @@ At this point the basic Debian system is ready. Customizations may
 now be performed including adding users, installing services and
 so forth.
 
-If you plan on installing a web server or web management system on the unit
-then you'll need to disable the temporary status display web server which is
+If you plan on installing a web server on the unit then you'll need 
+to disable the temporary status display web server which is
 currently running on http port 80.
 
     systemctl disable sc-statuspage
