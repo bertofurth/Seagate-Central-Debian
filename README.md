@@ -35,9 +35,9 @@ manufacturers of the Seagate Central NAS.**
 
 Note that our tests have shown that the "Bullseye" (Version 11) of
 Debian works fine on the Seagate Central, but we've seen significant
-instability with "Bookworm" (Version 12). It may be that this later
-version of Debian is too resource intensive for the Seagate Central
-hardware to cope with.
+instability with "Bookworm" (Version 12) when using the default 64k
+page size kernel (4k kernel seems ok). It may be that this later
+version of Debian does not work well with 64k page sizes.
 
 ## TLDNR
 * Obtain a Debian for Seagate Central upgrade image (see Releases)
