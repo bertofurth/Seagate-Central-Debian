@@ -2,11 +2,12 @@
 This document describes how to install and configure a simple
 samba file sharing service on the Debian for Seagate Central system.
 
-The example used will share a Public folder (as on the native 
-Seagate Central), share user's password protected home directories
-and publish another separate folder for the sc user. The example
-will also publish a special "status" folder that contains a dynamically
-generated web page that will show users the IP address of the system.
+In the example configuration below we will share a "Public" folder 
+(as on the native Seagate Central), share user's password protected
+home directories and publish another separate folder for the sc user.
+The example will also publish a special "status" folder that 
+contains a dynamically generated web page that will show users the
+IP address of the system.
 
 All commands in this document are executed as the root user or with the
 sudo prefix on the Seagate Central running Debian. 
@@ -23,13 +24,15 @@ order of about 200 MB of space on the root partition.
 Create the "Public" and "sc-backup" directories that are going to be shared. 
 In the example below we assume that the large Data partition is mounted at
 /Data . The Public directory will be accessible by any user, including anonymous
-guests but the "sc-backup" directory will only be accessible by user "sc".
+guests but the "sc-backup" directory will only be accessible by user "sc". (Note
+that the "Public" folder may already exist if the Data partiton was already in
+use by the native Seagate Central firmware.)
 
     mkdir /Data/Public
     chown nobody:nogroup /Data/Public
     chmod 755 /Data/Public
     
-    # Assign the "sc" user owner of the backup directory
+    # Create a special backup directory for the "sc" user.
     mkdir /Data/sc-backup
     chown sc:sc /Data/sc-backup/
     
@@ -48,10 +51,15 @@ folders with samba.
 
 Users can use the "smbpasswd" command to change their own samba file
 sharing password in the same way that they would use the "passwd" command 
-to change their unix login password. The samba file sharing passwords are
-not automatically synchronized with unix user passwords. This means that
-the file sharing and unix login passwords can be different, but if the
-user wishes they can set the same as each other.
+to change their unix login password. 
+
+With the samba configuration specified below, if the "smbpasswd" program is used 
+to change the samba password then the user's unix password will be changed
+to the same value. However, if the standard unix "passwd" command is used to
+change a user's unix password then the samba file sharing
+password will not be automatically updated. This means that the file sharing
+and unix login passwords can be different, but if the user wishes they can
+set the same as each other.
 
 ## samba configuration
 The samba configuration is stored in the /etc/samba/smb.conf file.
