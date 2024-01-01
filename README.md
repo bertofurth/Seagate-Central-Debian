@@ -1,6 +1,6 @@
 # Debian for Seagate Central NAS
 This is a procedure for installing a Debian Linux system on a
-Seagate Central NAS.
+Seagate Central NAS. Please take note of the Warning section below.
 
 These instructions are designed to get the unit to the point of having
 a very basic Debian based Linux operating system with a working
@@ -33,11 +33,17 @@ worked on. Be sure to backup any important data before proceeding.**
 **This project is not endorsed or supported by the original vendors or
 manufacturers of the Seagate Central NAS.**
 
-Note that our tests have shown that the "Bullseye" (Version 11) of
-Debian works fine on the Seagate Central, but we've seen significant
-instability with "Bookworm" (Version 12) when using the default 64k
-page size kernel (4k kernel seems ok). It may be that this later
-version of Debian does not work well with 64k page sizes.
+Debian on the Seagate Central appears to be fairly stable but there have 
+been occasions where the unit will hang mysteriously, paticularly at boot 
+time. If you boot up the unit and it is unresponsive after a few minutes then
+a hard power cycle may be in order. 
+
+Also note that our tests have shown that while Debian "Bullseye" (Version 11) 
+is fairly stable on the Seagate Central, we've seen significant
+problems with "Bookworm" (Version 12) particularly when using the
+default 64k page size kernel. It may be that this later version of Debian
+does not work well with 64k page sizes. We strongly suggest not upgrading 
+the Seagate Central to releases later than Debian "Bullseye" (11).
 
 ## TLDNR
 * Obtain a Debian for Seagate Central upgrade image (see Releases)
@@ -163,7 +169,7 @@ root password which is also "SCdebian2022" as per the following example.
     
     
 ### Customize the system
-#### Change the root and "sc" user passwords
+#### IMPORTANT : Change the root and "sc" user passwords
 The first, and most important order of business is to change the default
 passwords for the root and "sc" users. Issue the "passwd root" and "passwd su"
 commands to set new passwords as per the following example
@@ -210,7 +216,7 @@ Change this timezone as per the following example.
     
     # Note your timezone and change to it. Substitute
     # your timezone as per the listing from the last
-    # command
+    # command as per this example
     timedatectl set-timezone Europe/Berlin
     
     # Check the system time 
@@ -227,8 +233,8 @@ Change this timezone as per the following example.
     timedatectl set-ntp yes
     
 ### Optional - Update Debian
-Ensure that your system is running the latest Debian software by performing
-an update using the following commands issued as root
+Ensure that your system is running the latest software in your Debian
+release (Bullseye) by performing an update using the following commands issued as root
 
      apt-get update
      apt-get dist-upgrade
@@ -367,42 +373,42 @@ repartitioning the drive so that the root partition is much bigger than the
 default of 1GB. See the section below entitled "Optimize disk layout".
 
 Here are some brief notes on installing webmin on the Seagate Central running
-Debian. This is based on the documentation at https://www.webmin.com/deb.html
+Debian. This is based on the documentation at https://webmin.com/download/
 
-As root, install the required packages:
+As root, install the curl tool which is used to download content from the web.
 
-    apt-get install wget perl libnet-ssleay-perl openssl libauthen-pam-perl libpam-runtime libio-pty-perl apt-show-versions python unzip shared-mime-info gnupg apt-transport-https
-
+    apt install curl
+    
 To enable ipv6 for webmin also install the following package
 
-    apt-get install libsocket6-perl
+    apt install libsocket6-perl
     
-In order to access the webmin repository, add a line to /etc/apt/sources.list as follows
+Download then run the webmin installation script with the commands
     
-    echo "deb https://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list.d/webmin.list
+    curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
+    sh setup-repos.sh
 
 Download and install webmin with the following commands
 
-    wget https://download.webmin.com/jcameron-key.asc
-    apt-key add jcameron-key.asc
-    apt-get update
-    apt-get install webmin
+    apt-get install webmin --install-recommends
 
-Since it takes so long for the slow Seagate Central to activate webmin, we need
-to modify the statup service file /lib/systemd/system/webmin.service and 
+After webmin is installed we need to make some small modifications.
+
+Since it takes so long for the slow Seagate Central to activate webmin at bootup, you
+must edit the statup service file /lib/systemd/system/webmin.service and 
 change "TimeoutSec=15s" to "TimeoutSec=30s". This allows the webmin service enough time
 to start. Use the "nano" or "vi" editors to accomplish this.
 
 I would also suggest disabling ssl mode for the web server if you are running
 the Seagate Central on a trusted/home network. This can be done by editing
 /etc/webmin/miniserv.conf and changing "ssl=1" to "ssl=0". Even though 
-it's less secure it's much less strain on the system CPU. If you're using your
+it's less secure, it's much less strain on the system CPU. If you're using your
 Seagate Central on a public or untrusted network then leave ssl enabled.
 
-Reboot the unit with the "reboot" command and login via the webmin web interface 
-on port 10000 using a URL similar to http://192.168.1.99:10000 . If your browser complains 
-about any security issues then just ignore them for the moment. When prompted, login using
-the root username and password.
+Reboot the unit with the "reboot" command and once the unit comes back up, login via
+the webmin web interface on port 10000 using a URL similar to http://192.168.1.99:10000 .
+If your browser complains about any security issues then just ignore them for the moment.
+When prompted, login using the root username and password.
 
 Please raise an "issue" in the project if you manage to somehow tweak webin or another
 web based management tool to be less resource hungry or more reliable on the Seagate
