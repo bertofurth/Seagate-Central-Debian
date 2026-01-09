@@ -48,8 +48,8 @@ the Seagate Central to releases later than Debian "Bullseye" (11).
 ## TLDNR
 * Obtain a Debian for Seagate Central upgrade image (see Releases)
 * Install image using the Seagate Central Web Management page
-* Establish an ssh connection to the unit (username "sc", default pw "SCDebian2022")
-* Elevate to root with the "su -" command (root default pw "SCDebian2022")
+* Establish an ssh connection to the unit (username "sc", default pw "SCdebian2022")
+* Elevate to root with the "su -" command (root default pw "SCdebian2022")
 * Perform system customization (passwords, hostname, timezone etc)
 * Optional - Migrate to a 4K kernel then re-format the large Data partition
 * Cleanup
